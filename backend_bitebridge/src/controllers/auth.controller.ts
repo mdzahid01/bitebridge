@@ -41,9 +41,8 @@ const login = async (req: Request, res: Response) => {
             message: "Given email is not valid"
         })
        }
-       console.log("hit")
+
        const user = await User.findOne({email: email}).select("+password");
-       console.log("hit")
 
        if(!user){
         return res.status(400).json({

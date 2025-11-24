@@ -11,15 +11,15 @@ export interface iMenuItem extends Document {
 
 const menuItemSchema = new Schema<iMenuItem>({
     vendorId: {
-        type: mongoose.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Vendor",
         required: [true, "VendorId is required"],
         index: true,
     },
     categoryId: {
-        type: mongoose.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Category",
-        required: [true, "VendorId is required"],
+        required: [true, "categoryId is required"],
     },
     name: {
         type: String,
@@ -41,9 +41,17 @@ const menuItemSchema = new Schema<iMenuItem>({
 },
     {
         timestamps: true,
+        toJSON: { virtuals: true }, 
+        toObject: { virtuals: true },
     }
 
 )
+
+menuItemSchema.virtual('fullImageUrl').get(function () {
+    if (this.imageUrl) {
+        return `${process.env.BACKEND_URL}/media/menuItems/${this.imageUrl}`;
+    }
+});
 
 const menuItem = model<iMenuItem>("MenuItem",menuItemSchema)
 export default menuItem;

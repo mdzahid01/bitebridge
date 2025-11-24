@@ -3,11 +3,11 @@ import  mongoose, { Document, model, Schema } from "mongoose";
 export interface iOrderPayment extends Document{
     orderId: mongoose.Schema.Types.ObjectId,
     vendorId: mongoose.Schema.Types.ObjectId,
-    customerId?: mongoose.Schema.Types.ObjectId,
+    customerId?: mongoose.Schema.Types.ObjectId | null,
     amount: number,
     method: 'upi' | 'card' | 'cash',
     status: 'pending' | 'paid' | 'failed' | 'refunded',
-    transactionId?: string,
+    transactionId?: string| null,
 }
 
 const orderPaymentSchema = new Schema<iOrderPayment>(

@@ -13,10 +13,10 @@ export interface iOrder extends Document{
     customerId?: mongoose.Schema.Types.ObjectId,
     tokenNo: string,
     paymentMethod: 'upi' | 'cash' | 'card',
-    transactionId?: string,
+    transactionId?: string | null,
     totalAmount: number,
     items: iOrderItem[],
-    createdBy?: mongoose.Schema.Types.ObjectId,
+    createdBy?: mongoose.Schema.Types.ObjectId | null,
 }
 
 const orderItemSchema = new Schema<iOrderItem>({

@@ -6,6 +6,7 @@ import validator from 'validator'
 import Category, { iCategory } from "../models/category.model.js";
 import { fileURLToPath } from "url";
 import path from "path";
+import menuItem, {iMenuItem} from "../models/manuItem.model.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,7 +14,7 @@ const __dirname = path.dirname(__filename);
 const createVendor = async (req: Request, res: Response) => {
     try {
         const { shopName, address } = req.body;
-        const shopPhoto = req.file;
+        const shopImage = req.file;
         const user = req.user;
 
         // basic validators
@@ -33,14 +34,14 @@ const createVendor = async (req: Request, res: Response) => {
                 .json({ message: "ShopName and address are required" });
         }
 
-        if (!shopPhoto) {
-            return res.status(400).json({ message: "ShopPhoto are required" });
+        if (!shopImage) {
+            return res.status(400).json({ message: "shopImage are required" });
         }
 
         //ensuring no vendorshop exist before creating for same user
         const existingVendor = await Vendor.findOne({ ownerId: user._id });
         if (existingVendor) {
-            fs.unlinkSync(shopPhoto.path);
+            fs.unlinkSync(shopImage.path);
             return res
                 .status(409)
                 .json({ message: "This user has already created a vendor." });
@@ -56,7 +57,7 @@ const createVendor = async (req: Request, res: Response) => {
             shopName,
             address,
             subscriptionExpiry: expiryDate,
-            imageUrl: shopPhoto.filename,
+            imageUrl: shopImage.filename,
         });
 
         //saving vendor
@@ -744,7 +745,7 @@ const deleteManyEmployees = async (req: Request, res: Response) => {
             }
         )
         if (updatedResult.modifiedCount === 0) {
-            res.status(200).json({
+            return res.status(200).json({
                 message: 'No matching employee found to delete',
             });
         }
@@ -763,6 +764,77 @@ const deleteManyEmployees = async (req: Request, res: Response) => {
     }
 };
 
+
+const addMenuItem = async (req:Request, res:Response)=>{
+    const menuItemImage = req.file  
+    try {
+        const vendorId = req.user?.vendorId
+        const {name, category,price} = req.body
+
+        if(!name || !name.trim() || !category || price === undefined || price === ''){
+            if (menuItemImage) fs.unlinkSync(menuItemImage.path);
+            return res.status(400).json({
+                message:"All fields (Name, Category, Price) are required"
+            })
+        }
+        const numPrice = Number(price)
+        if(isNaN(numPrice) || numPrice < 0){
+            return res.status(400).json({
+                message:"Price must be a valid positive number"
+            })
+        }
+        const isCategoryExist = await Category.findOne({vendorId: vendorId,_id: category})
+        if(!isCategoryExist){
+            if (menuItemImage) fs.unlinkSync(menuItemImage.path);
+            return res.status(400).json({
+                message:"Invalid Category given"
+            })
+        }
+
+        const newMenuItem = new menuItem({
+            name: name.trim(),
+            vendorId:vendorId,
+            categoryId:category,
+            price: numPrice,
+            imageUrl:menuItemImage? menuItemImage.filename : null
+        })
+
+        const savedItem = await newMenuItem.save()
+
+        return res.status(201).json({
+            message: " Item Added successfully",
+            newItem: savedItem
+        })
+
+    } catch (err: any) {
+        if(menuItemImage) fs.unlinkSync(menuItemImage?.path)
+        return res.status(500).json({ 
+            message: "Internal Server Error", 
+            error: err.message 
+        });
+    }
+}
+
+const getMenuItem = (req:Request, res:Response)=>{
+
+}
+
+const getAllMenuItems = (req:Request, res:Response)=>{
+
+}
+
+const updateMenuItem = (req:Request, res:Response)=>{
+
+}
+
+const deleteMenuItem = (req:Request, res:Response)=>{
+
+}
+
+const deleteManyMenuItems = (req:Request, res:Response)=>{
+
+}
+
 export {
     // shop
     createVendor, //done
@@ -776,6 +848,14 @@ export {
     updateCategory, //done
     deleteCategory, //done
     deleteManyCategories, //done
+    
+    // menu management
+    addMenuItem,
+    updateMenuItem,
+    getMenuItem,
+    getAllMenuItems,
+    deleteMenuItem,
+    deleteManyMenuItems,
 
     // employee management
     addEmployee, //done
@@ -784,4 +864,5 @@ export {
     updateEmployee,
     deleteEmployee,
     deleteManyEmployees,
+    getAllDeletedEmployee
 };

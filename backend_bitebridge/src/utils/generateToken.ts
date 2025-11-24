@@ -21,7 +21,7 @@ const generateTokenAndSetCookie = (user: iUser,res: Response)=>{
         httpOnly: true,
         secure: process.env.NODE_ENV !== 'development',
         sameSite: 'strict',
-        maxAge: 7 * 24 * 24 * 60 * 1000,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 }
 

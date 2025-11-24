@@ -1,4 +1,5 @@
 import multer from "multer";
+import { Request, Response,NextFunction } from "express";
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -43,7 +44,7 @@ const uploadAvatar = multer({
             cb(new Error('Only images are allowed for avatars.'))
         }
     },
-    limits: {fileSize: 1024 * 1024 * 2} //2mb max
+    limits: {fileSize: 1024 * 1024 * 5} //5mb max
 });
 
 
@@ -54,7 +55,7 @@ const menuItemStorage = multer.diskStorage({
         cb(null, menuItemDir);
     },
     filename: (req, file, cb) => {
-        const tempName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
+        const tempName = `menu-${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
         cb(null, tempName);
     },
 });
@@ -69,7 +70,7 @@ const uploadMenuItem = multer({
             cb(new Error('Only images are allowed for menu items.'))
         }
     },
-    limits: {fileSize: 1024 * 1024 * 2} //2mb max
+    limits: {fileSize: 1024 * 1024 * 5} //5mb max
 });
 
 // ------------------------------vendor-Img--------------------------------------
@@ -94,7 +95,19 @@ const uploadVendor = multer({
             cb(new Error('Only images are allowed for vendor image.'))
         }
     },
-    limits: {fileSize: 1024 * 1024 * 2} //2mb max
+    limits: {fileSize: 1024 * 1024 * 5} //5mb max
 });
 
-export { uploadAvatar,uploadMenuItem,uploadVendor}
+function multerErrorHandler(err:any,req:Request,res:Response,next: NextFunction){
+    if (err.code === "LIMIT_FILE_SIZE") {
+    return res.status(400).json({
+      message: "File size must be less than 5MB"
+    });
+  }
+   if (err instanceof Error && !(err as any).code) {
+        return res.status(400).json({ message: err.message });
+    }
+  next(err);
+}
+
+export { uploadAvatar,uploadMenuItem,uploadVendor,multerErrorHandler}
