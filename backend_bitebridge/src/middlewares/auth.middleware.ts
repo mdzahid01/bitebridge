@@ -31,7 +31,7 @@ const protectedRoute = async (req: Request, res: Response, next: NextFunction)=>
         next();
 
     } catch (error: any) {
-        console.log(error.message);
+        console.log("protectedRoute Error:", error.message);
         return res.status(500).json({
             message:"Internal Server Error"
         })

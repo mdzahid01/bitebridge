@@ -19,7 +19,6 @@ const menuItemSchema = new Schema<iMenuItem>({
     categoryId: {
         type: Schema.Types.ObjectId,
         ref: "Category",
-        required: [true, "categoryId is required"],
     },
     name: {
         type: String,
@@ -53,5 +52,5 @@ menuItemSchema.virtual('fullImageUrl').get(function () {
     }
 });
 
-const menuItem = model<iMenuItem>("MenuItem",menuItemSchema)
-export default menuItem;
+const MenuItem = model<iMenuItem>("MenuItem",menuItemSchema)
+export default MenuItem;

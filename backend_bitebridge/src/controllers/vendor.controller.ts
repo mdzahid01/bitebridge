@@ -6,7 +6,7 @@ import validator from 'validator'
 import Category, { iCategory } from "../models/category.model.js";
 import { fileURLToPath } from "url";
 import path from "path";
-import menuItem, {iMenuItem} from "../models/manuItem.model.js";
+import MenuItem, { iMenuItem } from "../models/manuItem.model.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -298,6 +298,7 @@ const updateCategory = async (req: Request, res: Response) => {
             name: name,
             vendorId: vendorId
         }).lean();       // .lean() - plain object milega isse, taki typescript ki gandmasti rok saku
+        // ab ye sirf plain object hai jisme .save() ya koi aur  mongoos ke method use nahi kr sakte 
         if (existingCategory && existingCategory?._id.toString() !== id) {
             return res.status(409).json({ message: "This category name already exists." });
         }
@@ -341,23 +342,27 @@ const deleteCategory = async (req: Request, res: Response) => {
             })
         }
 
-        const deletedEmployee = await Category.findOneAndDelete({
+        const deletedCategory = await Category.findOneAndDelete({
             _id: id,
             vendorId: vendorId
         });
 
-        if (!deletedEmployee) {
+        if (!deletedCategory) {
             return res.status(404).json({
                 message: "Category not found or you are not the owner."
             });
         }
+        await MenuItem.updateMany(
+            {categoryId: id},
+            {$set: {categoryId:null}}
+        )
 
         return res.status(200).json({
             message: 'data Deleted successfully',
-            deletedEmployee: deletedEmployee
+            deletedCategory: deletedCategory
         })
     } catch (err: any) {
-        console.log("deletedEmployee Error: ", err);
+        console.log("deletedCategory Error: ", err);
         return res.status(500).json({
             message: "Internal server Error",
             error: err.message,
@@ -367,28 +372,32 @@ const deleteCategory = async (req: Request, res: Response) => {
 
 const deleteManyCategories = async (req: Request, res: Response) => {
     try {
-        const { deletedEmployee } = req.body
+        const { deletingCategory } = req.body
         const vendorId = req.user?.vendorId
 
-        if (!Array.isArray(deletedEmployee) || deletedEmployee.length === 0) {
+        if (!Array.isArray(deletingCategory) || deletingCategory.length === 0) {
             return res.status(400).json({
-                message: "An array of 'deletedEmployee' is required in the body."
+                message: "An array of 'deletingCategory' is required in the body."
             });
         }
 
-        if (!vendorId) {
-            return res.status(404).json({ message: "Vendor not found." });
+        const deleteResult = await Category.deleteMany({
+            _id: { $in: deletingCategory },
+            vendorId: vendorId
+        })
+        
+        if (deleteResult.deletedCount === 0) {
+            return res.status(404).json({ message: "No categories deleted." });
         }
 
-        const deleteResult = await Category.deleteMany(
-            {
-                _id: { $in: deletedEmployee },
-                vendorId: vendorId
-            }
-        )
+        //category delete to usse associated saari menuitems ki category null set kr dete hain 
+        await MenuItem.updateMany(
+            { categoryId: { $in: deletingCategory } }, // Query
+            { $set: { categoryId: null } }             // Update
+        );
 
         res.status(200).json({
-            message: `${deleteResult.deletedCount} categories deleted successfully.`,
+            message: `${deleteResult.deletedCount} categories deleted. Associated items are now Uncategorized.`,
             deletedData: deleteResult
         });
 
@@ -399,7 +408,6 @@ const deleteManyCategories = async (req: Request, res: Response) => {
             error: err.message,
         });
     }
-
 };
 
 const addEmployee = async (req: Request, res: Response) => {
@@ -435,7 +443,7 @@ const addEmployee = async (req: Request, res: Response) => {
             })
         }
 
-        const isNumberExist = await User.findOne({ phone: phone }, null, {withDeleted:true})
+        const isNumberExist = await User.findOne({ phone: phone }, null, { withDeleted: true })
         if (isNumberExist) {
             if (imgURl) fs.unlinkSync(imgURl.path);
             return res.status(400).json({
@@ -443,7 +451,7 @@ const addEmployee = async (req: Request, res: Response) => {
             })
         }
 
-        const existingUser = await User.findOne({ email: email }, null, {withDeleted:true})
+        const existingUser = await User.findOne({ email: email }, null, { withDeleted: true })
         if (existingUser) {
             if (imgURl) fs.unlinkSync(imgURl.path);
             return res.status(400).json({
@@ -565,12 +573,12 @@ const getAllEmployees = async (req: Request, res: Response) => {
     }
 };
 
-const getAllDeletedEmployee = async (req: Request, res: Response)=>{
-     try {
+const getAllDeletedEmployee = async (req: Request, res: Response) => {
+    try {
         const vendorId = req.user?.vendorId
         const ownerId = req.user?._id
 
-        const allDeletedEmployees = await User.find({ vendorId: vendorId, role: 'vendorStaff',isDeleted:true },null, {withDeleted: true})
+        const allDeletedEmployees = await User.find({ vendorId: vendorId, role: 'vendorStaff', isDeleted: true }, null, { withDeleted: true })
         if (allDeletedEmployees.length === 0) {
             return res.status(404).json({
                 messaage: "no emplyee found for this vendor",
@@ -681,7 +689,6 @@ const updateEmployee = async (req: Request, res: Response) => {
             error: err.message
         })
     }
-
 };
 
 const deleteEmployee = async (req: Request, res: Response) => {
@@ -765,38 +772,38 @@ const deleteManyEmployees = async (req: Request, res: Response) => {
 };
 
 
-const addMenuItem = async (req:Request, res:Response)=>{
-    const menuItemImage = req.file  
+const addMenuItem = async (req: Request, res: Response) => {
+    const menuItemImage = req.file
     try {
         const vendorId = req.user?.vendorId
-        const {name, category,price} = req.body
+        const { name, category, price } = req.body
 
-        if(!name || !name.trim() || !category || price === undefined || price === ''){
+        if (!name || !name.trim() || !category || price === undefined || price === '') {
             if (menuItemImage) fs.unlinkSync(menuItemImage.path);
             return res.status(400).json({
-                message:"All fields (Name, Category, Price) are required"
+                message: "All fields (Name, Category, Price) are required"
             })
         }
         const numPrice = Number(price)
-        if(isNaN(numPrice) || numPrice < 0){
+        if (isNaN(numPrice) || numPrice < 0) {
             return res.status(400).json({
-                message:"Price must be a valid positive number"
+                message: "Price must be a valid positive number"
             })
         }
-        const isCategoryExist = await Category.findOne({vendorId: vendorId,_id: category})
-        if(!isCategoryExist){
+        const isCategoryExist = await Category.findOne({ vendorId: vendorId, _id: category })
+        if (!isCategoryExist) {
             if (menuItemImage) fs.unlinkSync(menuItemImage.path);
             return res.status(400).json({
-                message:"Invalid Category given"
+                message: "Invalid Category given"
             })
         }
 
-        const newMenuItem = new menuItem({
+        const newMenuItem = new MenuItem({
             name: name.trim(),
-            vendorId:vendorId,
-            categoryId:category,
+            vendorId: vendorId,
+            categoryId: category,
             price: numPrice,
-            imageUrl:menuItemImage? menuItemImage.filename : null
+            imageUrl: menuItemImage ? menuItemImage.filename : null
         })
 
         const savedItem = await newMenuItem.save()
@@ -807,32 +814,255 @@ const addMenuItem = async (req:Request, res:Response)=>{
         })
 
     } catch (err: any) {
-        if(menuItemImage) fs.unlinkSync(menuItemImage?.path)
-        return res.status(500).json({ 
-            message: "Internal Server Error", 
-            error: err.message 
+        if (menuItemImage) fs.unlinkSync(menuItemImage?.path)
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: err.message
         });
     }
 }
 
-const getMenuItem = (req:Request, res:Response)=>{
+const getMenuItem = async (req: Request, res: Response) => {
+    try {
+        const vendorId = req.user?.vendorId
+        const { id } = req.params
+        if (!id) {
+            return res.status(400).json({
+                message: "Menu item ID is required"
+            })
+        }
 
+        const item = await MenuItem.findOne({
+            _id: id,
+            vendorId: vendorId
+        }).lean();
+
+        if (!item) {
+            return res.status(404).json({
+                message: "This item does not exist or does not belong to this vendor."
+            })
+        }
+        return res.status(200).json({
+            message: "Menu item fetched successfully",
+            item: item
+        })
+    } catch (err: any) {
+        console.log("getMenuItem Error: ", err);
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: err.message
+        })
+    }
 }
 
-const getAllMenuItems = (req:Request, res:Response)=>{
+const getAllMenuItems = async (req: Request, res: Response) => {
+    try {
+        const vendorId = req.user?.vendorId
 
+        const allMenuItems = await MenuItem.find({ vendorId: vendorId })
+        .populate('categoryId','name')
+        .lean()
+
+        if (allMenuItems.length===0) return res.status(404).json({
+            message: "No Item on this vendor's Menu",
+            allMenuItems: []
+        })
+
+        return res.status(200).json({
+            message: "Items fetched successfully",
+            allMenuItems: allMenuItems
+        })
+    } catch (err: any) {
+        console.log("getAllMenuItems Error: ", err);
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: err.message
+        })
+    }
 }
 
-const updateMenuItem = (req:Request, res:Response)=>{
+const updateMenuItem = async (req: Request, res: Response) => {
+    const menuItemImage = req.file;
+    const { id } = req.params;
 
+    try {
+        const vendorId = req.user?.vendorId;
+        const { name, price, category, availability } = req.body;
+
+        // 1. Basic ID Check
+        if (!id) {
+            if (menuItemImage) fs.unlinkSync(menuItemImage.path);
+            return res.status(400).json({ message: "Menu Item ID is required" });
+        }
+
+        // 2. Find Item (Aur check karo ki ye isi vendor ka hai)
+        const menuItem = await MenuItem.findOne({ _id: id, vendorId: vendorId });
+
+        if (!menuItem) {
+            if (menuItemImage) fs.unlinkSync(menuItemImage.path);
+            return res.status(404).json({ message: "Item not found or you don't own it" });
+        }
+
+        // 3. Category Validation (Agar user category badal raha hai)
+        if (category) {
+            const categoryExists = await Category.findOne({ _id: category, vendorId: vendorId });
+            if (!categoryExists) {
+                if (menuItemImage) fs.unlinkSync(menuItemImage.path);
+                return res.status(400).json({ message: "Invalid Category or it doesn't belong to you" });
+            }
+            menuItem.categoryId = category;
+        }
+
+        // 4. Image Handling (Purani Udaao, Nayi Lagao)
+        if (menuItemImage) {
+            // A. Purani file delete karo (Agar exist karti hai)
+            if (menuItem.imageUrl) {
+                const oldImagePath = path.join(__dirname, '..', '..', 'media', 'menuItems', menuItem.imageUrl);
+                if (fs.existsSync(oldImagePath)) {
+                    fs.unlinkSync(oldImagePath);
+                }
+            }
+            // B. Nayi file ka naam set karo
+            menuItem.imageUrl = menuItemImage.filename;
+        }
+
+        // 5. Text Fields Update (Agar provide kiye gaye hain to)
+        if (name) menuItem.name = name;
+        
+        // Price undefined ya empty string nahi hona chahiye
+        if (price !== undefined && price !== "") {
+            const numPrice = Number(price);
+            if (!isNaN(numPrice) && numPrice >= 0) {
+                menuItem.price = numPrice;
+            }
+        }
+
+        // Availability handle karo (Boolean conversion zaroori hai FormData ke liye)
+        if (availability !== undefined) {
+            menuItem.availability = availability === 'true'; 
+        }
+
+        const updatedItem = await menuItem.save();
+
+        return res.status(200).json({
+            message: "Menu Item updated successfully",
+            updatedItem: updatedItem
+        });
+
+    } catch (err: any) {
+        if (menuItemImage) {
+            fs.unlinkSync(menuItemImage.path);
+        }
+        console.log("updateMenuItem Error: ", err);
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: err.message
+        });
+    }
 }
 
-const deleteMenuItem = (req:Request, res:Response)=>{
+const deleteMenuItem = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const vendorId = req.user?.vendorId;
 
+        // 1. Validation
+        if (!id) {
+            return res.status(400).json({ message: "Menu Item ID is required" });
+        }
+
+        // 2. Find and Delete
+        // Security: Hum vendorId bhi check kar rahe hain taaki koi aur delete na kar sake
+        const deletedItem = await MenuItem.findOneAndDelete({
+            _id: id,
+            vendorId: vendorId
+        });
+
+        if (!deletedItem) {
+            return res.status(404).json({ message: "Item not found or you don't own it" });
+        }
+
+        // 3. Image Cleanup (Safai Abhiyaan 🧹)
+        // Agar item delete ho gaya, to uski image bhi server se uda do
+        if (deletedItem.imageUrl) {
+            const imagePath = path.join(__dirname, '..', '..', 'media', 'menuItems', deletedItem.imageUrl);
+            
+            if (fs.existsSync(imagePath)) {
+                fs.unlinkSync(imagePath);
+            }
+        }
+
+        return res.status(200).json({
+            message: "Menu Item deleted successfully",
+            deletedItem: deletedItem
+        });
+
+    } catch (err: any) {
+        console.log("deleteMenuItem Error: ", err);
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: err.message
+        });
+    }
 }
 
-const deleteManyMenuItems = (req:Request, res:Response)=>{
+const deleteManyMenuItems = async (req: Request, res: Response) => {
+    try {
+        // Frontend se array aana chahiye: { "menuItemIds": ["id1", "id2"] }
+        const { menuItemIds } = req.body;
+        const vendorId = req.user?.vendorId;
 
+        if (!Array.isArray(menuItemIds) || menuItemIds.length === 0) {
+            return res.status(400).json({
+                message: "An array of 'menuItemIds' is required."
+            });
+        }
+
+        if (!vendorId) {
+            return res.status(404).json({ message: "Vendor not found." });
+        }
+
+        // image cleanup ke liye aisa kr rhe hain warna direct deleteMany use krte
+        const itemsToDelete = await MenuItem.find({
+            _id: { $in: menuItemIds },
+            vendorId: vendorId // Security: Sirf apne items dhoondo
+        });
+
+        if (itemsToDelete.length === 0) {
+            return res.status(404).json({
+                message: "No matching menu items found to delete."
+            });
+        }
+
+        // pahle image delete krenge server se
+        itemsToDelete.forEach((item) => {
+            if (item.imageUrl) {
+                const imagePath = path.join(__dirname, '..', '..', 'media', 'menuItems', item.imageUrl);
+                
+                if (fs.existsSync(imagePath)) {
+                    fs.unlinkSync(imagePath);
+                }
+            }
+        });
+
+
+        const deleteResult = await MenuItem.deleteMany({
+            _id: { $in: menuItemIds },
+            vendorId: vendorId
+        });
+
+        return res.status(200).json({
+            message: `${deleteResult.deletedCount} menu items deleted successfully.`,
+            deletedCount: deleteResult.deletedCount
+        });
+
+    } catch (err: any) {
+        console.log("deleteManyMenuItems Error: ", err);
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: err.message
+        });
+    }
 }
 
 export {
@@ -848,21 +1078,21 @@ export {
     updateCategory, //done
     deleteCategory, //done
     deleteManyCategories, //done
-    
+
     // menu management
-    addMenuItem,
-    updateMenuItem,
-    getMenuItem,
+    addMenuItem,    //done
+    updateMenuItem, //done
+    getMenuItem,    //done
     getAllMenuItems,
-    deleteMenuItem,
-    deleteManyMenuItems,
+    deleteMenuItem, //done
+    deleteManyMenuItems, //done
 
     // employee management
     addEmployee, //done
-    getEmployee,
-    getAllEmployees,
-    updateEmployee,
-    deleteEmployee,
-    deleteManyEmployees,
-    getAllDeletedEmployee
+    getEmployee,//done
+    getAllEmployees,//done
+    updateEmployee,//done
+    deleteEmployee,//done
+    deleteManyEmployees,//done
+    getAllDeletedEmployee//done
 };
