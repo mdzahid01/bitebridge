@@ -9,8 +9,7 @@ import { fileURLToPath } from "url"
 import authRouter from './routes/auth.routes.js'
 import vendorRouter from "./routes/vendorOwner/vendor.routes.js"
 
-// Connect to DB
-// connectDB(process.env.MONGO_URI!);
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 

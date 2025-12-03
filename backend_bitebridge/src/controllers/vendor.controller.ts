@@ -254,7 +254,9 @@ const getAllCategories = async (req: Request, res: Response) => {
     try {
         const vendorId = req.user?.vendorId;
 
-        const categories = await Category.find({ vendorId: vendorId });
+        const categories = await Category.find({ vendorId: vendorId })
+        .select('name')
+        .lean();
 
         if (categories.length === 0) {
             return res.status(404).json({
@@ -799,7 +801,7 @@ const addMenuItem = async (req: Request, res: Response) => {
         }
 
         const newMenuItem = new MenuItem({
-            name: name.trim(),
+            name: name.trim().toLowerCase(),
             vendorId: vendorId,
             categoryId: category,
             price: numPrice,
@@ -860,10 +862,9 @@ const getAllMenuItems = async (req: Request, res: Response) => {
         const vendorId = req.user?.vendorId
 
         const allMenuItems = await MenuItem.find({ vendorId: vendorId })
-        .populate('categoryId','name')
-        .lean()
+        .populate('categoryId','name').select(['-vendorId'])
 
-        if (allMenuItems.length===0) return res.status(404).json({
+        if (allMenuItems.length===0) return res.status(200).json({
             message: "No Item on this vendor's Menu",
             allMenuItems: []
         })
@@ -1083,7 +1084,7 @@ export {
     addMenuItem,    //done
     updateMenuItem, //done
     getMenuItem,    //done
-    getAllMenuItems,
+    getAllMenuItems,//done
     deleteMenuItem, //done
     deleteManyMenuItems, //done
 

@@ -8,6 +8,7 @@ import CreateCategory from "../pages/vendor/CreateCategory";
 import ProtectedRoute from "./ProtectedRoutes";
 import CategoryManagementPage from "../pages/vendor/CategoryManagementPage";
 import StaffManagementPage from "../pages/vendor/StaffManagementPage";
+import MenuItemManagementPage from "../pages/vendor/MenuItemManagementPage";
 
 const router = createBrowserRouter([
     {
@@ -43,6 +44,14 @@ const router = createBrowserRouter([
         element:(
             <ProtectedRoute allowedRole="vendorOwner">
                 <StaffManagementPage/>
+            </ProtectedRoute>
+        )
+    },
+    {
+        path:'/menu-management',
+        element:(
+            <ProtectedRoute allowedRole="vendorOwner">
+                <MenuItemManagementPage/>
             </ProtectedRoute>
         )
     },

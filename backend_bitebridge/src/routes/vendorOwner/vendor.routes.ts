@@ -5,20 +5,29 @@ import { uploadVendor, uploadAvatar,uploadMenuItem, multerErrorHandler } from ".
 import {
     createVendor,
     createCategories,
+
     addCategory,
     getAllCategories,
     getCategory,
     updateCategory,
     deleteCategory,
     deleteManyCategories,
+
     addEmployee,
     updateEmployee,
     deleteEmployee,
     deleteManyEmployees,
     getEmployee,
     getAllEmployees,
+
     toggleShopStatus,
+
     addMenuItem,
+    getMenuItem,
+    getAllMenuItems,
+    updateMenuItem,
+    deleteMenuItem,
+
 } from "../../controllers/vendor.controller.js";
 import { compressImage } from "../../middlewares/compressImage.middleware.js";
 const vendorRouter = Router()
@@ -56,5 +65,32 @@ vendorRouter.post('/add-menu-item',
     compressImage,
     addMenuItem
 )
+vendorRouter.get('/get-menu-item/:id',
+    protectedRoute,
+    checkVendorOwner,
+    checkVendorExist,
+    getMenuItem,
+)
+vendorRouter.get('/get-all-menu-items',
+    protectedRoute,
+    checkVendorOwner,
+    checkVendorExist,
+    getAllMenuItems
+)
+vendorRouter.delete('/delete-menu-item/:id',
+    protectedRoute,
+    checkVendorOwner,
+    checkVendorExist,
+    deleteMenuItem
+)
 
+vendorRouter.put('/update-menu-item/:id',
+    protectedRoute,
+    checkVendorOwner,
+    checkVendorExist,
+    uploadMenuItem.single('menuItemImage'),
+    multerErrorHandler,
+    compressImage,
+    updateMenuItem,
+)
 export default vendorRouter
