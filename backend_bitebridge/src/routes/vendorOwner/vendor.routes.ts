@@ -27,6 +27,7 @@ import {
     getAllMenuItems,
     updateMenuItem,
     deleteMenuItem,
+    deleteManyMenuItems,
 
 } from "../../controllers/vendor.controller.js";
 import { compressImage } from "../../middlewares/compressImage.middleware.js";
@@ -82,6 +83,13 @@ vendorRouter.delete('/delete-menu-item/:id',
     checkVendorOwner,
     checkVendorExist,
     deleteMenuItem
+)
+
+vendorRouter.delete('/delete-many-menu-item/',
+    protectedRoute,
+    checkVendorOwner,
+    checkVendorExist,
+    deleteManyMenuItems
 )
 
 vendorRouter.put('/update-menu-item/:id',

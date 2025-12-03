@@ -1,6 +1,7 @@
 import { useEffect, useState,type MouseEvent,type KeyboardEvent, type ChangeEvent, type FormEvent } from 'react'
 import axiosClient from '../../services/axiosClient'
 import type { iCategory } from '../../types/category'
+import axios from 'axios'
 
 
 
@@ -116,7 +117,7 @@ function MenuItemManagementPage() {
         if(debouncedSearch.trim()!==""){
             result = result.filter(item=> item.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
         }
-
+        setSelectedItemIds([])
         setFilterdItems(result)
     }, [menuItems,categoryfilter,debouncedSearch]);
 
@@ -178,6 +179,26 @@ function MenuItemManagementPage() {
         } catch (err: any) {
             console.error("Delete error:", err);
             alert(err.response?.data?.message || "Failed to delete item");   
+        }
+    }
+
+    const handleSelectDelete = async()=>{
+        if (!window.confirm("Are you sure you want to delete this menu item?")) {
+            return;
+        }
+
+        const dataToSend = {
+            menuItemIds: [...selectedItemIds]
+        }
+        try{
+            const response = await axiosClient.delete('vendors/delete-many-menu-item/',{data:dataToSend})
+            if(response.status === 200){
+                window.alert(`${selectedItemIds.length} items deleted`)
+                setSelectedItemIds([]);
+                fetchMenuItems();
+            }
+        }catch(error: any){
+            console.log("Error: ", error.response.data.message)
         }
     }
 
@@ -327,6 +348,8 @@ function MenuItemManagementPage() {
                         <button onClick={()=>{if(item.id){handleDelete(item.id)}}}>Delete</button>
                        </div>
                     ))):<div>No Item Found</div>}
+
+                {selectedItemIds.length>0 && <button type="button" onClick={handleSelectDelete}>Delete Selected({selectedItemIds.length})</button>}
             </div>
         </>
     )
