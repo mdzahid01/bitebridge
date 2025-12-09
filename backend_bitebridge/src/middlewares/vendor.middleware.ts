@@ -9,6 +9,16 @@ const checkVendorOwner = (req: Request, res: Response, next: NextFunction)=>{
     next()
 }
 
+const checkVendorMember = (req: Request, res: Response, next: NextFunction)=>{
+    const allowedRoles = ['vendorOwner', 'vendorStaff']
+    if(!req.user || !allowedRoles.includes(req.user.role)){
+        return res.status(403).json({
+            message:"Unauthorized: Only vendor Owner And Vendor Staff can access this route."
+        }) 
+    }
+     next() 
+}
+
 const checkVendorExist = (req: Request, res: Response, next: NextFunction)=>{
     if(!req.user?.vendorId){
         return res.status(404).json({
@@ -20,5 +30,6 @@ const checkVendorExist = (req: Request, res: Response, next: NextFunction)=>{
 
 export default checkVendorOwner
 export {
-    checkVendorExist
+    checkVendorExist,
+    checkVendorMember,
 }
