@@ -3,12 +3,15 @@ import mongoose,{Document,Schema,model} from "mongoose";
 export interface iVendor extends Document{
     ownerId : mongoose.Schema.Types.ObjectId,
     shopName : string,
+    slug: string,
     address : string,
     imageUrl?: string
+    fullImageUrl?: string; // Virtual property for frontend
     subscriptionPlan: 'free' | 'pro' | 'premium',
     isOpen : boolean,
     subscriptionExpiry: Date,
     qrCode?: string
+    fullQrCodeUrl?: string; // Virtual property for frontend
 }
 
 const vendorSchema = new Schema<iVendor>({
@@ -21,6 +24,12 @@ const vendorSchema = new Schema<iVendor>({
         type: String,
         required:[true,"Shop name is required"],
         trim: true,
+    },
+    slug:{
+        type: String,
+        index: true,
+        unique: true,
+        required:[true,'slug is required'],
     },
     address: {
         type: String,
@@ -43,7 +52,8 @@ const vendorSchema = new Schema<iVendor>({
         required: true,
     },
     qrCode:{
-        type: String
+        type: String,
+        default: null,
     },
 },
     {   timestamps: true,
@@ -52,9 +62,15 @@ const vendorSchema = new Schema<iVendor>({
     }
 )
 
-vendorSchema.virtual('ImageUrl').get(function(){
+vendorSchema.virtual('fullImageUrl').get(function(){
     if(this.imageUrl){
-        return `${process.env.BACKEND_URL}media/vendors/${this.imageUrl}`
+        return `${process.env.BACKEND_URL}/media/vendors/${this.imageUrl}`
+    }
+})
+
+vendorSchema.virtual('fullQrCodeUrl').get(function(){
+    if(this.qrCode){
+        return `${process.env.BACKEND_URL}/media/qrcodes/${this.qrCode}`
     }
 })
 
