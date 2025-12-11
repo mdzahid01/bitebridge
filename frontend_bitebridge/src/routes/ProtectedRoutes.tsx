@@ -3,11 +3,11 @@ import { useAuth } from "../context/AuthContext";
 import { type userRole } from "../types/user.types";
 
 type ProtectedRouteProps = {
-    allowedRole: userRole,
+    allowedRoles: userRole[],
     children: React.ReactElement
 };
 
-const ProtectedRoute = ({allowedRole,children}:ProtectedRouteProps)=>{
+const ProtectedRoute = ({allowedRoles,children}:ProtectedRouteProps)=>{
     const {authUser} = useAuth();
     const location = useLocation()
 
@@ -15,7 +15,7 @@ const ProtectedRoute = ({allowedRole,children}:ProtectedRouteProps)=>{
         return <Navigate to="/login" state={{from: location}} replace />
     }
 
-    if(authUser.role === allowedRole){
+    if(allowedRoles.includes(authUser.role)){
         return children
     }
     console.log("vendorOwner id se login kr bachcha")

@@ -6,7 +6,9 @@ import validator from 'validator'
 import Category, { iCategory } from "../models/category.model.js";
 import { fileURLToPath } from "url";
 import path from "path";
+import QRCode from "qrcode";
 import MenuItem, { iMenuItem } from "../models/manuItem.model.js";
+import { generateSlug } from "../utils/slugGenerator.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,6 +49,32 @@ const createVendor = async (req: Request, res: Response) => {
                 .json({ message: "This user has already created a vendor." });
         }
 
+        let slug = generateSlug(shopName)
+        const slugExist = await Vendor.findOne({slug:slug})
+        if(slugExist){
+            slug = `${slug}-${Math.floor(Math.random()*1000)}`
+        }
+
+        const shopUrl = `${process.env.FRONTEND_URL}/vendor/${slug}`;
+
+        const qrFileName = `qr-${slug}.png`;
+        const qrDir = path.join(process.cwd(), 'media', 'qrcodes')
+        const qrFilePath = path.join(qrDir,qrFileName)
+
+        if(!fs.existsSync(qrDir)){
+            fs.mkdirSync(qrDir, { recursive: true })
+        }
+
+        // await QRCode.toFile(qrFilePath,shopUrl)
+        await QRCode.toFile(qrFilePath, shopUrl, {
+            width: 300,
+            margin: 2,
+            color: {
+                dark: "#000000",
+                light: "#FFFFFF"
+            }
+        });
+
         // Set up the 7-day trial expiry date
         const today = new Date();
         const expiryDate = new Date(today);
@@ -56,6 +84,8 @@ const createVendor = async (req: Request, res: Response) => {
             ownerId: user._id,
             shopName,
             address,
+            slug,
+            qrCode: qrFileName,
             subscriptionExpiry: expiryDate,
             imageUrl: shopImage.filename,
         });
@@ -556,7 +586,8 @@ const getAllEmployees = async (req: Request, res: Response) => {
 
         const allEmployees = await User.find({ vendorId: vendorId, role: 'vendorStaff' })
         if (allEmployees.length === 0) {
-            return res.status(404).json({
+            console.log("khali hai")
+            return res.status(200).json({
                 messaage: "no emplyee found for this vendor",
                 allEmployees: []
             })
@@ -1030,7 +1061,7 @@ const deleteManyMenuItems = async (req: Request, res: Response) => {
         });
 
         if (itemsToDelete.length === 0) {
-            return res.status(404).json({
+            return res.status(200).json({
                 message: "No matching menu items found to delete."
             });
         }

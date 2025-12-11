@@ -42,7 +42,7 @@ function StaffManagementPage() {
 
     useEffect(()=>{
          fetchAllStaffs();
-    },[allStaffs])
+    },[])
 
     const closeModal =()=>{
         setIsModalOpen(false)
@@ -130,13 +130,12 @@ function StaffManagementPage() {
             }
            
             if(editModal){
-                await axiosClient.put(`/vendors/update-employee/${modalFormData?.id}`,dataToSend)
-                setIsModalOpen(false)
                 setEditModal(false)
             }else{
                 await axiosClient.post('vendors/add-employee',dataToSend)
-                setIsModalOpen(false)
             }
+            setIsModalOpen(false)
+            fetchAllStaffs();
         } catch (error:any) {
             console.error("Form submission error:", error);
             setError(error.response?.data?.message || "An error occurred.");

@@ -18,7 +18,7 @@ const router = createBrowserRouter([
     {
         path:'/create-vendor',
         element:(
-            <ProtectedRoute allowedRole="vendorOwner">
+            <ProtectedRoute allowedRoles={["vendorOwner"]}>
                 <CreateVendor/>
             </ProtectedRoute>
         )
@@ -26,7 +26,7 @@ const router = createBrowserRouter([
     {
         path:'/create-category',
         element:(
-            <ProtectedRoute allowedRole="vendorOwner">
+            <ProtectedRoute allowedRoles={["vendorOwner"]}>
                 <CreateCategory/>
             </ProtectedRoute>
         )
@@ -34,7 +34,7 @@ const router = createBrowserRouter([
     {
         path:'/category-management',
         element:(
-            <ProtectedRoute allowedRole="vendorOwner">
+            <ProtectedRoute allowedRoles={["vendorOwner"]}>
                 <CategoryManagementPage/>
             </ProtectedRoute>
         )
@@ -42,7 +42,7 @@ const router = createBrowserRouter([
     {
         path:'/staff-management',
         element:(
-            <ProtectedRoute allowedRole="vendorOwner">
+            <ProtectedRoute allowedRoles={["vendorOwner"]}>
                 <StaffManagementPage/>
             </ProtectedRoute>
         )
@@ -50,7 +50,7 @@ const router = createBrowserRouter([
     {
         path:'/menu-management',
         element:(
-            <ProtectedRoute allowedRole="vendorOwner">
+            <ProtectedRoute allowedRoles={["vendorOwner"]}>
                 <MenuItemManagementPage/>
             </ProtectedRoute>
         )

@@ -55,7 +55,7 @@ function CreateVendor() {
             const dataToSubmit = new FormData()
             dataToSubmit.append('shopName', formData.shopName)
             dataToSubmit.append('address', formData.address)
-            dataToSubmit.append('shopPhoto', shopPhoto)
+            dataToSubmit.append('shopImage', shopPhoto)
 
             const response = await axiosClient.post('/vendors/create-vendor', dataToSubmit)
             alert("success: " + response.data)

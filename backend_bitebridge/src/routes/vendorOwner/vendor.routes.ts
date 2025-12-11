@@ -34,7 +34,12 @@ import { compressImage } from "../../middlewares/compressImage.middleware.js";
 const vendorRouter = Router()
 
 //vendor creation
-vendorRouter.post('/create-vendor', protectedRoute, checkVendorOwner, uploadVendor.single('shopImage'), createVendor)
+vendorRouter.post('/create-vendor', 
+    protectedRoute, 
+    checkVendorOwner, 
+    uploadVendor.single('shopImage'),
+    createVendor
+)
 
 //category management
 vendorRouter.post('/create-categories', protectedRoute, checkVendorOwner, checkVendorExist, createCategories)

@@ -26,7 +26,7 @@ app.use("/media",express.static(path.join(__dirname,"../media")))
 
 // test route
 app.get("/",(req:Request,res:Response)=>{
-    res.send("working fine bc!")
+    res.send("working fine")
 })
 
 app.use("/api/auth", authRouter) 

@@ -1,7 +1,6 @@
 import { useEffect, useState,type MouseEvent,type KeyboardEvent, type ChangeEvent, type FormEvent } from 'react'
 import axiosClient from '../../services/axiosClient'
 import type { iCategory } from '../../types/category'
-import axios from 'axios'
 
 
 
