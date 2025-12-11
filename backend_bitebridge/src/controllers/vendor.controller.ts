@@ -48,16 +48,25 @@ const createVendor = async (req: Request, res: Response) => {
                 .status(409)
                 .json({ message: "This user has already created a vendor." });
         }
-
-        let slug = generateSlug(shopName)
-        const slugExist = await Vendor.findOne({slug:slug})
-        if(slugExist){
-            slug = `${slug}-${Math.floor(Math.random()*1000)}`
+        //genrating slug
+        let baseSlug = generateSlug(shopName)
+        let finalSlug = baseSlug
+        let unique = false
+        
+        //run loop until slug become unique
+        while(!unique){
+            const slugExist = await Vendor.exists({slug:finalSlug})
+            if(slugExist){
+                finalSlug = `${baseSlug}-${Math.floor(Math.random()*1000)}`
+            }
+            else{
+                unique = true
+            }
         }
 
-        const shopUrl = `${process.env.FRONTEND_URL}/vendor/${slug}`;
+        const shopUrl = `${process.env.FRONTEND_URL}/vendor/${finalSlug}`;
 
-        const qrFileName = `qr-${slug}.png`;
+        const qrFileName = `qr-${finalSlug}.png`;
         const qrDir = path.join(process.cwd(), 'media', 'qrcodes')
         const qrFilePath = path.join(qrDir,qrFileName)
 
@@ -84,7 +93,7 @@ const createVendor = async (req: Request, res: Response) => {
             ownerId: user._id,
             shopName,
             address,
-            slug,
+            slug: finalSlug,
             qrCode: qrFileName,
             subscriptionExpiry: expiryDate,
             imageUrl: shopImage.filename,
