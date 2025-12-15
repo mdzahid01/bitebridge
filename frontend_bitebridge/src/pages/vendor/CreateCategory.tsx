@@ -1,6 +1,7 @@
 import {useState, type ChangeEvent,type FormEvent,type MouseEvent, type KeyboardEvent} from 'react'
 import axiosClient from '../../services/axiosClient'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 
 function CreateCategory() {
     const [currentcategory , setCurrentCategory] = useState<string>("")
@@ -45,11 +46,13 @@ function CreateCategory() {
         try {
             const response = await axiosClient.post('/vendors/create-categories',categories);
             alert("success");
+            toast.success("Category(ies) created..")
             console.log(response.data?.createdCategories);
             navigate('/')
             
         } catch (err: any) {
             console.log("Error Found: ",err);
+            toast.error(err.response.data.message)
             setLoading(false)
             setError(err.response.data.message || "failed to create Categories")
         }finally{

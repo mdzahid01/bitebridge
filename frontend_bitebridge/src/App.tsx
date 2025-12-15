@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Toaster } from 'react-hot-toast'
 import { useAuth } from './context/AuthContext'
 import AppRouter from './routes/AppRouter'
 import authApi from './services/authApi';
@@ -31,8 +32,22 @@ function App() {
 if(loading) {
   return <div>Loading....</div>
 }
-  return (
-    <AppRouter/>
+  return (<>
+      <AppRouter/>
+      <Toaster 
+          position="bottom-center"
+          reverseOrder={false}
+          toastOptions={{
+            // Global styling (sare toasts ke liye)
+            style: {
+              fontSize: '16px',
+              padding: '5px',
+              minWidth: '300px',
+              borderRadius: '10px',
+            },
+          }}
+        />
+      </>
   )
 }
 

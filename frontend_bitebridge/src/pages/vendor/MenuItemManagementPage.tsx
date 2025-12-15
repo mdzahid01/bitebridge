@@ -1,7 +1,7 @@
 import { useEffect, useState,type MouseEvent,type KeyboardEvent, type ChangeEvent, type FormEvent } from 'react'
 import axiosClient from '../../services/axiosClient'
 import type { iCategory } from '../../types/category'
-
+import toast  from 'react-hot-toast'
 
 
 type imageStyleType = {
@@ -191,8 +191,8 @@ function MenuItemManagementPage() {
         }
         try{
             const response = await axiosClient.delete('vendors/delete-many-menu-item/',{data:dataToSend})
+            toast.success(`${selectedItemIds.length} item(s) has been deleted`)
             if(response.status === 200){
-                window.alert(`${selectedItemIds.length} items deleted`)
                 setSelectedItemIds([]);
                 fetchMenuItems();
             }
@@ -249,17 +249,33 @@ function MenuItemManagementPage() {
             let response;
             if(!editModal){
                 response = await axiosClient.post('vendors/add-menu-item',dataToSend)
-                alert("success: " + response.data)
             }else{
                 response = await axiosClient.put(`vendors/update-menu-item/${modalFormData.id}`,dataToSend)
-                alert("success: " + response.data)
+                setEditModal(false)
             }
             if(response.status===200 || response.status===201)
             console.log(response.data)
+            setIsModalOpen(false)
             fetchMenuItems();
+            toast.success("Item successfully updated!");
             
         } catch (err: any) {
             console.log('vendor creation failed:', err.response.data);
+            const message = err.response?.data?.message || "An unknown error occurred.";
+            const status = err.response?.status;
+
+            if(status === 409){
+                toast.error(message)
+            }
+            else if (status === 400) {
+                toast.error(`Validation Failed: ${message}`);
+            } 
+            else if (status === 404) {
+                toast.error(message);
+            } 
+            else {
+                toast.error("Internal Server Error. Please try again later.");
+            }
         }
 
     }

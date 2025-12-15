@@ -1,6 +1,7 @@
 import mongoose, { Document, model, Schema } from "mongoose";
 
 export interface iMenuItem extends Document {
+    _id: mongoose.Types.ObjectId; // ye automatic hota hai but typescript error line na de isliye manually add kiya gya hai
     vendorId: mongoose.Schema.Types.ObjectId,
     categoryId: mongoose.Schema.Types.ObjectId,
     name: string,

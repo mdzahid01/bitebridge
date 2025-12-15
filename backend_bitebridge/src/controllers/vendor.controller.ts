@@ -840,6 +840,13 @@ const addMenuItem = async (req: Request, res: Response) => {
             })
         }
 
+        const existingMenuItem = await MenuItem.findOne({vendorId,name:name.trim().toLowerCase()})
+        if(existingMenuItem){
+            return res.status(409).json({
+                message:"You already have an item with this name.",
+            })
+        }
+
         const newMenuItem = new MenuItem({
             name: name.trim().toLowerCase(),
             vendorId: vendorId,
@@ -847,6 +854,7 @@ const addMenuItem = async (req: Request, res: Response) => {
             price: numPrice,
             imageUrl: menuItemImage ? menuItemImage.filename : null
         })
+
 
         const savedItem = await newMenuItem.save()
 
@@ -954,7 +962,22 @@ const updateMenuItem = async (req: Request, res: Response) => {
             menuItem.categoryId = category;
         }
 
-        // 4. Image Handling (Purani Udaao, Nayi Lagao)
+        // 4. Text Fields Update (Agar provide kiye gaye hain to)
+        if (name){
+            const existingMenuItem = await MenuItem.findOne({
+                name: name,vendorId: vendorId
+            });
+
+            if(existingMenuItem && existingMenuItem._id.toString() !== id){
+                if (menuItemImage) fs.unlinkSync(menuItemImage.path);
+                return res.status(409).json({
+                    message: "You already have an item with this name.",
+                })
+            }
+            menuItem.name = name;   
+        }
+
+        // 5. Image Handling (Purani Udaao, Nayi Lagao)
         if (menuItemImage) {
             // A. Purani file delete karo (Agar exist karti hai)
             if (menuItem.imageUrl) {
@@ -966,9 +989,6 @@ const updateMenuItem = async (req: Request, res: Response) => {
             // B. Nayi file ka naam set karo
             menuItem.imageUrl = menuItemImage.filename;
         }
-
-        // 5. Text Fields Update (Agar provide kiye gaye hain to)
-        if (name) menuItem.name = name;
         
         // Price undefined ya empty string nahi hona chahiye
         if (price !== undefined && price !== "") {

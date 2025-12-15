@@ -126,8 +126,6 @@ function CategoryManagementPage() {
 
     if(loading) return <div>Loading...</div>
 
-    if(error) return <div style={{color:"red"}}>Error: {error}</div>
-
   return (
     <>
     <h3>Category Management</h3>
@@ -143,6 +141,7 @@ function CategoryManagementPage() {
         </div>
     ) 
     }
+    {error && <div style={{color:"red"}}>Error: {error}</div> }
 
     <div className="category-container">
         
