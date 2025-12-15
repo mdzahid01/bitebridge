@@ -64,7 +64,7 @@ const createVendor = async (req: Request, res: Response) => {
             }
         }
 
-        const shopUrl = `${process.env.FRONTEND_URL}/vendor/${finalSlug}`;
+        const shopUrl = `${process.env.FRONTEND_URL}/menu/${finalSlug}`;
 
         const qrFileName = `qr-${finalSlug}.png`;
         const qrDir = path.join(process.cwd(), 'media', 'qrcodes')
