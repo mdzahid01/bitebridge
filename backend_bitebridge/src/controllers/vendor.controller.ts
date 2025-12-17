@@ -595,7 +595,6 @@ const getAllEmployees = async (req: Request, res: Response) => {
 
         const allEmployees = await User.find({ vendorId: vendorId, role: 'vendorStaff' })
         if (allEmployees.length === 0) {
-            console.log("khali hai")
             return res.status(200).json({
                 messaage: "no emplyee found for this vendor",
                 allEmployees: []

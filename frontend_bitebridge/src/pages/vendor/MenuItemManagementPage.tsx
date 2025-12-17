@@ -2,19 +2,28 @@ import { useEffect, useState,type MouseEvent,type KeyboardEvent, type ChangeEven
 import axiosClient from '../../services/axiosClient'
 import type { iCategory } from '../../types/category'
 import toast  from 'react-hot-toast'
+import { 
+    Plus, 
+    Search, 
+    Edit2, 
+    Trash2, 
+    X, 
+    Image as ImageIcon, 
+    Filter, 
+    CheckSquare,
+} from 'lucide-react';
 
+// type imageStyleType = {
+//     width: string,
+//     height: string,
+//     objectFit: "cover" | "contain" | "fill" 
+// }
 
-type imageStyleType = {
-    width: string,
-    height: string,
-    objectFit: "cover" | "contain" | "fill" 
-}
-
-const imageSize: imageStyleType = {
-    width: "100px",
-    height: "100px",
-    objectFit: "fill"
-}
+// const imageSize: imageStyleType = {
+//     width: "100px",
+//     height: "100px",
+//     objectFit: "fill"
+// }
 
 type CategoryApiResponse = {
     message: string,
@@ -281,93 +290,277 @@ function MenuItemManagementPage() {
     }
 
     return (
-        <>
-            <h3>MenuItemManagementPage</h3>
-            {isModalOpen && (
-                <div className="modal">
-                <form onSubmit={handleSubmit}>
-                    <input 
-                    type="file" 
-                    name="" 
-                    id=""
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    />
+        <div className="min-h-screen bg-gray-50 p-6">
+            
+            {/* ========================
+                1. HEADER SECTION
+               ======================== */}
+            <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-800">Menu Management</h1>
+                    <p className="text-gray-500 text-sm">Manage your food items, prices and availability</p>
+                </div>
+                
+                {/* Add Button */}
+                <button 
+                    onClick={handleAddClick}
+                    className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-lg font-medium transition-all shadow-sm active:scale-95"
+                >
+                    <Plus size={20} /> Add New Item
+                </button>
+            </div>
 
+            {/* ========================
+                2. TOOLBAR (Search & Filter)
+               ======================== */}
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+                
+                {/* Search Bar */}
+                <div className="relative w-full md:w-96">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                     <input 
                         type="text" 
-                        name="name" 
-                        placeholder='name' 
-                        id="name" 
-                        value={modalFormData.name || ''}
-                        onChange={handleInputChange}
+                        value={searchQuery} 
+                        onChange={handleSearchQueryChange} 
+                        placeholder="Search menu items..." 
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
                     />
-                    <input 
-                        type="number" 
-                        name="price" 
-                        placeholder='price' 
-                        id="price" 
-                        value={modalFormData.price || ''} 
-                        onChange={handleInputChange} 
-                    />
-                    {editModal && 
-                        <label htmlFor="availability">
-                            Available:
-                            <input
-                            type="checkbox"
-                            name="availability"
-                            checked={modalFormData.availability}
-                            onChange={handleInputChange}
-                        />
-                        </label>
-                    }
-     
-                    <select name="category" id="category" value={modalFormData.category || ''} onChange={handleInputChange}>
-                        <option value="" disabled >select category</option>
-                    {categories.map((cat) => (
-                        <option key={cat._id} value={cat._id}>
-                            {cat.name}
-                        </option>
-                    ))}
-                </select>
-                    <button type="submit">{editModal?'Edit':'Add'}</button>
-                </form>
-                <button onClick={handleCloseModal}>close</button>
+                </div>
+
+                {/* Filter Dropdown */}
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                    <Filter className="text-gray-500" size={20} />
+                    <select 
+                        defaultValue={categoryfilter} 
+                        onChange={handleCategoryFilterChange}
+                        className="w-full md:w-48 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-white cursor-pointer"
+                    >
+                        <option value="All">All Categories</option>
+                        {categories.map((cat) => (
+                            <option key={cat._id} value={cat.name}>{cat.name}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
+
+            {/* ========================
+                3. ITEMS GRID
+               ======================== */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-20">
+                {filteredItems.length > 0 ? (
+                    filteredItems.map((item) => (
+                        <div key={item.id} className={`group bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-all duration-300 relative ${selectedItemIds.includes(item.id) ? 'border-orange-500 ring-1 ring-orange-500' : 'border-gray-200'}`}>
+                            
+                            {/* Checkbox Overlay */}
+                            <div className="absolute top-3 left-3 z-10">
+                                <input 
+                                    type="checkbox" 
+                                    checked={selectedItemIds.includes(item.id)} 
+                                    onChange={(e) => handleMenuItemChecks(e, item.id)}
+                                    className="w-5 h-5 cursor-pointer accent-orange-600 rounded focus:ring-orange-500"
+                                />
+                            </div>
+
+                            {/* Image Area */}
+                            <div className="h-48 w-full bg-gray-100 relative overflow-hidden">
+                                {item.fullImageUrl ? (
+                                    <img 
+                                        src={item.fullImageUrl} 
+                                        alt={item.name} 
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                        <ImageIcon size={48} />
+                                    </div>
+                                )}
+                                
+                                {/* Badge (Example) */}
+                                <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-bold text-orange-600 shadow-sm">
+                                    ₹{item.price}
+                                </span>
+                            </div>
+
+                            {/* Content Area */}
+                            <div className="p-4">
+                                <div className="flex justify-between items-start mb-2">
+                                    <h3 className="font-bold text-gray-800 truncate pr-2" title={item.name}>{item.name}</h3>
+                                    {/* Action Buttons */}
+                                    <div className="flex gap-1">
+                                        <button 
+                                            onClick={(e) => handleEditClick(item, e)}
+                                            className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                            title="Edit"
+                                        >
+                                            <Edit2 size={16} />
+                                        </button>
+                                        <button 
+                                            onClick={() => { if(item.id) handleDelete(item.id) }}
+                                            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                            title="Delete"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-500 bg-gray-100 px-2 py-0.5 rounded text-xs">
+                                        {/* Category Name Dikhane ke liye logic agar item object me category name hai */}
+                                        Category
+                                    </span>
+                                    <span className={`text-xs font-medium px-2 py-0.5 rounded ${item.availability ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                        {item.availability ? 'Available' : 'Unavailable'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="col-span-full flex flex-col items-center justify-center py-20 text-gray-500">
+                        <div className="bg-gray-100 p-4 rounded-full mb-4">
+                            <Search size={40} className="text-gray-400" />
+                        </div>
+                        <p className="text-lg font-medium">No items found</p>
+                        <p className="text-sm">Try adjusting your search or filter.</p>
+                    </div>
+                )}
+            </div>
+
+            {/* ========================
+                4. FLOATING DELETE BAR (For Bulk Actions)
+               ======================== */}
+            {selectedItemIds.length > 0 && (
+                <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-6 z-40 animate-in slide-in-from-bottom-5">
+                    <span className="font-medium flex items-center gap-2">
+                        <CheckSquare size={18} className="text-orange-500" />
+                        {selectedItemIds.length} Selected
+                    </span>
+                    <div className="h-6 w-px bg-gray-700"></div>
+                    <button 
+                        onClick={handleSelectDelete}
+                        className="text-red-400 hover:text-red-300 font-bold flex items-center gap-2 transition-colors"
+                    >
+                        <Trash2 size={18} /> Delete Selected
+                    </button>
+                </div>
             )}
 
-            <div className="row">
-                <select name="category" id="category" defaultValue={categoryfilter} onChange={handleCategoryFilterChange}>
-                    <option value="All" >All</option>
-                    {categories.map((cat) => (
-                        <option key={cat._id} value={cat.name}>
-                            {cat.name}
-                        </option>
-                    ))}
-                </select>
+            {/* ========================
+                5. MODAL (Add/Edit Form)
+               ======================== */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+                onClick={handleCloseModal}>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+                     onClick={(e) => e.stopPropagation()}>
+                        
+                        {/* Modal Header */}
+                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <h2 className="text-xl font-bold text-gray-800">
+                                {editModal ? 'Edit Item' : 'Add New Item'}
+                            </h2>
+                            <button onClick={handleCloseModal} className="text-gray-500 hover:text-gray-800 p-1 hover:bg-gray-200 rounded-full transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
 
-                <input type="text" name="searchQuery" id="searchQuery" value={searchQuery} onChange={handleSearchQueryChange} placeholder='Search Here...'/>
-                <button onClick={handleAddClick}>+</button>
-            </div>
+                        {/* Modal Body */}
+                        <div className="p-6">
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                
+                                {/* Image Input */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Item Image</label>
+                                    <input 
+                                        type="file" 
+                                        accept="image/*"
+                                        onChange={handleFileChange}
+                                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100 cursor-pointer border border-gray-300 rounded-lg p-1"
+                                    />
+                                </div>
 
-            <div className="item-container">
-                {/* filteredItems */}
-                {/* menuItems */}
-                     {filteredItems.length>0? (filteredItems.map((item) => (
-                       <div className="item" key={item.id}>
-                        <input type="checkbox" name="menu-Item-checkbox" checked={selectedItemIds.includes(item.id)} id={item.id} onChange={(e)=>handleMenuItemChecks(e,item.id)}/>
-                        <img  style={imageSize}src={item.fullImageUrl|| "https://placehold.co/100"} alt={item.name} />
-                        <span>{item.name}</span>
-                        <span>{item.price}</span>
-                        <button type='button' onClick={(e)=>{handleEditClick(item,e)}}>Edit</button>
-                        <button onClick={()=>{if(item.id){handleDelete(item.id)}}}>Delete</button>
-                       </div>
-                    ))):<div>No Item Found</div>}
+                                {/* Name Input */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
+                                    <input 
+                                        type="text" 
+                                        name="name" 
+                                        id="name"
+                                        placeholder="e.g. Cheese Burger" 
+                                        value={modalFormData.name || ''}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                                        required
+                                    />
+                                </div>
 
-                {selectedItemIds.length>0 && <button type="button" onClick={handleSelectDelete}>Delete Selected({selectedItemIds.length})</button>}
-            </div>
-        </>
-    )
+                                {/* Price & Category Row */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                                        <input 
+                                            type="number" 
+                                            name="price" 
+                                            id="price"
+                                            placeholder="0.00" 
+                                            value={modalFormData.price || ''} 
+                                            onChange={handleInputChange} 
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                        <select 
+                                            name="category" 
+                                            id="category" 
+                                            value={modalFormData.category || ''} 
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-white"
+                                            required
+                                        >
+                                            <option value="" disabled>Select</option>
+                                            {categories.map((cat) => (
+                                                <option key={cat._id} value={cat._id}>{cat.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Availability Toggle (Only in Edit Mode) */}
+                                {editModal && (
+                                    <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                        <input
+                                            type="checkbox"
+                                            name="availability"
+                                            id="availability"
+                                            checked={modalFormData.availability}
+                                            onChange={handleInputChange}
+                                            className="w-5 h-5 accent-orange-600 rounded cursor-pointer"
+                                        />
+                                        <label htmlFor="availability" className="text-sm font-medium text-gray-700 cursor-pointer select-none">
+                                            Mark as Available
+                                        </label>
+                                    </div>
+                                )}
+
+                                {/* Submit Button */}
+                                <button 
+                                    type="submit" 
+                                    className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-lg active:scale-95 transition-all shadow-md mt-4"
+                                >
+                                    {editModal ? 'Save Changes' : 'Add Item'}
+                                </button>
+
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+        </div>
+    );
 }
 
 export default MenuItemManagementPage

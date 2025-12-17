@@ -15,6 +15,10 @@ const authApi = {
     getProfile: async ()=>{
         const response = await axiosClient.get('/auth/me')
         return response;
+    },
+    logout: async ()=>{
+        const response = await axiosClient.post('/auth/logout')
+        return response;
     }
 }
 

@@ -17,6 +17,24 @@ const app : Application = express()
 
 // essential middlewares
 app.use(cors({origin: process.env.FRONTEND_URL || "*", credentials:true}))
+
+// app.use(cors({
+//   origin: [
+//     "http://localhost:5173",
+//     "https://41n3b4bc-5173.inc1.devtunnels.ms"
+//   ],
+//   credentials: true
+// }));
+
+// app.use(cors({
+//   origin: [
+//     "http://localhost:5173",
+//     /^https:\/\/.*\.devtunnels\.ms$/,
+//   ],
+//   credentials: true
+// }));
+
+
 app.use(cookieParser()) 
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
@@ -29,8 +47,8 @@ app.get("/",(req:Request,res:Response)=>{
     res.send("working fine")
 })
 
-app.use("/api/auth", authRouter) 
-app.use("/api/vendors", vendorRouter) 
+app.use("/api/auth", authRouter) //auth routes
+app.use("/api/vendors", vendorRouter) // vendorOwner routes
 
 
 

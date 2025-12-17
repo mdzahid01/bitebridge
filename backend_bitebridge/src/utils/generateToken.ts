@@ -19,8 +19,10 @@ const generateTokenAndSetCookie = (user: iUser,res: Response)=>{
 
     res.cookie('jwt', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV !== 'development',
-        sameSite: 'strict',
+        // secure: process.env.NODE_ENV !== 'development',
+        secure: true,
+        // sameSite: 'strict',
+        sameSite: 'none',
         maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 }

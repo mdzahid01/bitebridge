@@ -24,9 +24,7 @@ const me = async (req: Request, res:  Response)=>{
     }
 }
 
-const login = async (req: Request, res: Response) => {
-
-    
+const login = async (req: Request, res: Response) => {    
     try {
        const {email, password} = req.body;
 
@@ -86,11 +84,17 @@ const signup = async (req: Request, res: Response) => {
         console.log(name,email,phone,password,role,imgURl?.originalname)
         
         if(!name || !email || !phone || !password || !role){
+            if(imgURl){
+                fs.unlinkSync(imgURl.path)
+            }
             return res.status(400).json({
                 message:"All Fields are Required"
             })
         }
         if(phone.length!==10){
+            if(imgURl){
+                fs.unlinkSync(imgURl.path)
+            }
              return res.status(400).json({
                 message: "Phone number must be 10 digit"
             })
@@ -169,5 +173,15 @@ const signup = async (req: Request, res: Response) => {
     }
 }
 
+const logout = async(req: Request, res: Response)=>{
+    res.clearCookie('jwt',{
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path:'/',
+    });
+    res.status(200).json({ message: "Logged out successfully" });
+}
 
-export {signup,login,me}
+
+export {signup,login,logout,me}
