@@ -7,7 +7,7 @@ const usePageTitle = (title:string)=>{
         // const prevTitle = document.title;
         document.title = `${title} | BiteBridge`
 
-    })
+    },[location,title])
 }
 
 export default usePageTitle
