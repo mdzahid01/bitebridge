@@ -1,5 +1,6 @@
 import { useEffect, useState,type ChangeEvent,type FormEvent } from "react"
 import axiosClient from "../../services/axiosClient"
+import LoadingSpinner from "../../components/layout/LoadingSpinner";
 import {type iCategory} from '../../types/category'
 import { 
     Plus, 
@@ -8,8 +9,12 @@ import {
     X, 
     Layers, 
     AlertCircle, 
-    CheckSquare 
+    CheckSquare,
+    Search,
+    CircleX,
 } from 'lucide-react';
+import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
 
 
 function CategoryManagementPage() {
@@ -18,6 +23,7 @@ function CategoryManagementPage() {
     const [editModal,setEditModal] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
     const [loading,setLoading] = useState<boolean>(true)
+    const [searchTerm,setSearchTerm] = useState<string>("");
     const [modalFormData , setModalFormData] = useState<{id:string|null, name: string}>({
         id: null,
         name:""
@@ -40,7 +46,7 @@ function CategoryManagementPage() {
 
     useEffect(()=>{
          fetchAllCategories();
-    },[allCategories])
+    },[])
 
     const closeModal =()=>{
         setIsModalOpen(false)
@@ -82,9 +88,8 @@ function CategoryManagementPage() {
     const handleSubmit =async (e: FormEvent<HTMLFormElement>)=>{
         e.preventDefault()
         setError(null)
-        console.log(editModal)
         if(modalFormData?.name.trim() === ""){
-            alert("Category name cannot be empty")
+            toast.error("Category name cannot be empty")
             // setError("Category name cannot be empty")
             return
         }
@@ -92,15 +97,17 @@ function CategoryManagementPage() {
         try {
             if(editModal){
                 await axiosClient.put(`/vendors/update-category/${modalFormData?.id}`,{ name: modalFormData?.name })
-                setIsModalOpen(false)
                 setEditModal(false)
             }else{
                 await axiosClient.post('vendors/add-category',{ name: modalFormData?.name })
-                setIsModalOpen(false)
+                
             }
         } catch (error:any) {
             console.error("Form submission error:", error);
             setError(error.response?.data?.message || "An error occurred.");
+        }finally{
+            setIsModalOpen(false)
+            fetchAllCategories();
         }
     }
 
@@ -133,8 +140,9 @@ function CategoryManagementPage() {
         }
 
     }
+    const filteredCategories = allCategories?.filter((cat)=>cat.name.toLowerCase().includes(searchTerm.toLowerCase()))
 
-    if(loading) return <div>Loading...</div>
+    if(loading) return <LoadingSpinner/>
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -142,33 +150,54 @@ function CategoryManagementPage() {
       {/* ========================
           1. HEADER SECTION
          ======================== */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <div>
-           <div className="flex items-center gap-2">
-                <div className="bg-orange-100 p-2 rounded-lg text-orange-600">
-                    <Layers size={24} />
-                </div>
-                <h1 className="text-2xl font-bold text-gray-800">Category Management</h1>
-           </div>
-           <p className="text-gray-500 text-sm mt-1 ml-12">Organize your menu items into categories</p>
+      {/* Header Section */}
+<div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+    
+    {/* Left Side: Title */}
+    <div>
+        <div className="flex items-center gap-2">
+            <div className="bg-orange-100 p-2 rounded-lg text-orange-600">
+                <Layers size={24} />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-800">Category Management</h1>
         </div>
+        <p className="text-gray-500 text-sm mt-1 ml-12">Organize your menu items</p>
+    </div>
+
+    {/* Right Side: Search & Add Button */}
+    <div className="flex gap-3 w-full md:w-auto">
         
-        {/* Add Button */}
+        {/* SEARCH BAR UI */}
+        <div className="relative flex-1 md:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input 
+                type="text" 
+                placeholder="Search categories..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+            />
+        </div>
+
         <button 
             onClick={openAddModal}
-            className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-lg font-medium transition-all shadow-sm active:scale-95"
+            className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-lg font-medium transition-all shadow-sm active:scale-95 whitespace-nowrap"
         >
-            <Plus size={20} /> New Category
+            <Plus size={20} /> <span className="hidden sm:inline">New</span>
         </button>
-      </div>
+    </div>
+</div>
 
       {/* ========================
           2. ERROR MESSAGE
          ======================== */}
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-            <AlertCircle size={20} />
-            <span>{error}</span>
+        <div className="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg flex  flex-row items-center justify-between gap-2 animate-in fade-in slide-in-from-top-2">
+            <div className="flex flex-row gap-2">
+                <AlertCircle size={20} />
+            { error=="No Vendor Found: Create Vendor first"?<span>{error} <Link to="/create-vendor" className="text-gray-400 underline underline-offset-1">Create Vendor</Link></span>:<span>{error}</span> }
+            </div>
+            <CircleX size={20} onClick={()=>setError(null)} className="cursor-pointer"/>
         </div>
       )}
 
@@ -176,8 +205,8 @@ function CategoryManagementPage() {
           3. CATEGORY GRID
          ======================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-20">
-        {allCategories && allCategories.length > 0 ? (
-            allCategories.map((category: iCategory) => (
+        {filteredCategories && filteredCategories.length > 0 ? (
+            filteredCategories.map((category: iCategory) => (
                 <div 
                     key={category?._id} 
                     className={`group bg-white p-4 rounded-xl border shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-between ${

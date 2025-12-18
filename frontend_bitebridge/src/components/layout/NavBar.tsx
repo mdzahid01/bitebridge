@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link,NavLink, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 // ✅ Lucide Icons Import
 import { 
@@ -21,6 +21,12 @@ const Navbar = () => {
     const { authUser, setAuthUser } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const navigate = useNavigate();
+    const getLinkClass = ({isActive}:{isActive:boolean})=>
+       ( `block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+      isActive 
+        ? "text-orange-600 font-bold bg-orange-50"  // ✅ Active: Orange Text + Light Background
+        : "text-gray-600 hover:text-orange-600 hover:bg-gray-50" // ❌ Inactive: Gray Text
+    }`)
 
     const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -63,56 +69,56 @@ const Navbar = () => {
                     </div>
 
                     {/* =======================
-                        2. DESKTOP MENU LINKS 
+                        2. DESKTOP MENU NavLinks 
                        ======================= */}
                     <div className="hidden md:flex items-center space-x-6">
                         
                         {/* A. GUEST */}
                         {!authUser && (
                             <>
-                                <Link to="/" className="text-gray-600 hover:text-orange-600 font-medium transition-colors">Home</Link>
-                                <Link to="/scan" className="flex items-center gap-1 text-gray-600 hover:text-orange-600 font-medium transition-colors">
+                                <NavLink to="/" className="text-gray-600 hover:text-orange-600 font-medium transition-colors">Home</NavLink>
+                                <NavLink to="/scan" className="flex items-center gap-1 text-gray-600 hover:text-orange-600 font-medium transition-colors">
                                     <QrCode size={18} /> 
                                     <span>Scan & Order</span>
-                                </Link>
+                                </NavLink>
                                 <div className="h-6 w-px bg-gray-300 mx-2"></div>
-                                <Link to="/login" className="text-gray-600 hover:text-orange-600 font-medium transition-colors">Login</Link>
-                                <Link to="/signup" className="bg-orange-600 text-white px-5 py-2 rounded-full font-medium hover:bg-orange-700 transition shadow-sm">
+                                <NavLink to="/login" className="text-gray-600 hover:text-orange-600 font-medium transition-colors">Login</NavLink>
+                                <NavLink to="/signup" className="bg-orange-600 text-white px-5 py-2 rounded-full font-medium hover:bg-orange-700 transition shadow-sm">
                                     Sign Up
-                                </Link>
-                                <Link to="/signup" className="text-sm text-gray-500 hover:text-gray-800 border border-gray-300 px-3 py-1.5 rounded-md transition-colors">
+                                </NavLink>
+                                <NavLink to="/signup" className="text-sm text-gray-500 hover:text-gray-800 border border-gray-300 px-3 py-1.5 rounded-md transition-colors">
                                     Are you a Vendor?
-                                </Link>
+                                </NavLink>
                             </>
                         )}
 
                         {/* B. CUSTOMER */}
                         {role === 'customer' && (
                             <>
-                                <Link to="/" className="text-gray-600 hover:text-orange-600 font-medium">Home</Link>
-                                <Link to="/scan" className="flex items-center gap-2 bg-gray-100 text-gray-800 px-4 py-2 rounded-full hover:bg-gray-200 transition">
+                                <NavLink to="/" className={getLinkClass}>Home</NavLink>
+                                <NavLink to="/scan" className="flex items-center gap-2 bg-gray-100 text-gray-800 px-4 py-2 rounded-full hover:bg-gray-200 transition">
                                     <QrCode size={18} /> 
                                     <span className="text-sm font-semibold">Scan QR</span>
-                                </Link>
-                                <Link to="/my-orders" className="text-gray-600 hover:text-orange-600 font-medium">My Orders</Link>
-                                <Link to="/cart" className="relative text-gray-600 hover:text-orange-600 transition-transform hover:scale-105">
+                                </NavLink>
+                                <NavLink to="/my-orders" className={getLinkClass}>My Orders</NavLink>
+                                <NavLink to="/cart" className="relative text-gray-600 hover:text-orange-600 transition-transform hover:scale-105">
                                     <ShoppingBag size={24} />
                                     {/* Cart Badge */}
                                     <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center border-2 border-white">
                                         0
                                     </span>
-                                </Link>
+                                </NavLink>
                             </>
                         )}
 
                         {/* C. VENDOR OWNER */}
                         {role === 'vendorOwner' && (
                             <>
-                                <Link to="/vendor/dashboard" className="text-gray-600 hover:text-orange-600 font-medium">Dashboard</Link>
-                                <Link to="/menu-management" className="text-gray-600 hover:text-orange-600 font-medium">Menu</Link>
-                                <Link to="/category-management" className="text-gray-600 hover:text-orange-600 font-medium">Category</Link>
-                                <Link to="/staff-management" className="text-gray-600 hover:text-orange-600 font-medium">Staff Management</Link>
-                                <Link to="/vendor/create-order" className="text-gray-600 hover:text-orange-600 font-medium">Create Order</Link>
+                                <NavLink to="/vendor/dashboard" className={getLinkClass}>Dashboard</NavLink>
+                                <NavLink to="/menu-management" className={getLinkClass}>Menu</NavLink>
+                                <NavLink to="/category-management" className={getLinkClass}>Category</NavLink>
+                                <NavLink to="/staff-management" className={getLinkClass}>Staff Management</NavLink>
+                                <NavLink to="/vendor/create-order" className={getLinkClass}>Create Order</NavLink>
                                 <div className="bg-orange-100 text-orange-800 px-3 py-1 rounded text-xs font-bold uppercase tracking-wide border border-orange-200">
                                     Owner
                                 </div>
@@ -122,9 +128,9 @@ const Navbar = () => {
                         {/* D. STAFF */}
                         {role === 'vendorStaff' && (
                             <>
-                                <Link to="/vendor/dashboard" className="text-gray-600 hover:text-orange-600 font-medium">Live Orders</Link>
-                                <Link to="/vendor/menu" className="text-gray-600 hover:text-orange-600 font-medium">Availability</Link>
-                                <Link to="/vendor/create-order" className="text-gray-600 hover:text-orange-600 font-medium">Create Order</Link>
+                                <NavLink to="/vendor/dashboard" className="text-gray-600 hover:text-orange-600 font-medium">Live Orders</NavLink>
+                                <NavLink to="/vendor/menu" className="text-gray-600 hover:text-orange-600 font-medium">Availability</NavLink>
+                                <NavLink to="/vendor/create-order" className="text-gray-600 hover:text-orange-600 font-medium">Create Order</NavLink>
                                 <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded text-xs font-bold uppercase tracking-wide border border-blue-200">
                                     Staff
                                 </div>
@@ -148,10 +154,10 @@ const Navbar = () => {
                                         <p className="text-sm font-semibold text-gray-900 truncate">{authUser.email}</p>
                                     </div>
                                     
-                                    <Link to="/profile" className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
+                                    <NavLink to="/profile" className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
                                         <User size={18} />
                                         Profile
-                                    </Link>
+                                    </NavLink>
                                     
                                     <button onClick={handleLogout} className="w-full flex items-center gap-2 text-left px-4 py-2 text-red-600 hover:bg-red-50 transition-colors mt-1">
                                         <LogOut size={18} />
@@ -183,12 +189,12 @@ const Navbar = () => {
                         {/* GUEST MOBILE */}
                         {!authUser && (
                             <>
-                                <MobileLink to="/" onClick={toggleMenu}>Home</MobileLink>
-                                <MobileLink to="/scan" onClick={toggleMenu} icon={<QrCode size={18} />}>Scan QR</MobileLink>
-                                <MobileLink to="/login" onClick={toggleMenu}>Login</MobileLink>
-                                <MobileLink to="/signup" onClick={toggleMenu}>Signup</MobileLink>
+                                <MobileNavLink to="/" onClick={toggleMenu}>Home</MobileNavLink>
+                                <MobileNavLink to="/scan" onClick={toggleMenu} icon={<QrCode size={18} />}>Scan QR</MobileNavLink>
+                                <MobileNavLink to="/login" onClick={toggleMenu}>Login</MobileNavLink>
+                                <MobileNavLink to="/signup" onClick={toggleMenu}>Signup</MobileNavLink>
                                 <div className="border-t border-gray-100 my-2"></div>
-                                <MobileLink to="/signup" onClick={toggleMenu} className="text-orange-600 font-semibold bg-orange-50">Are you a Vendor?</MobileLink>
+                                <MobileNavLink to="/signup" onClick={toggleMenu} className="text-orange-600 font-semibold bg-orange-50">Are you a Vendor?</MobileNavLink>
                             </>
                         )}
 
@@ -196,10 +202,10 @@ const Navbar = () => {
                         {role === 'customer' && (
                             <>
                                 <UserProfileMobile user={authUser} />
-                                <MobileLink to="/" onClick={toggleMenu}>Home</MobileLink>
-                                <MobileLink to="/scan" onClick={toggleMenu} icon={<QrCode size={18} />}>Scan QR</MobileLink>
-                                <MobileLink to="/my-orders" onClick={toggleMenu}>My Orders</MobileLink>
-                                <MobileLink to="/cart" onClick={toggleMenu} icon={<ShoppingBag size={18} />}>My Cart</MobileLink>
+                                <MobileNavLink to="/" onClick={toggleMenu}>Home</MobileNavLink>
+                                <MobileNavLink to="/scan" onClick={toggleMenu} icon={<QrCode size={18} />}>Scan QR</MobileNavLink>
+                                <MobileNavLink to="/my-orders" onClick={toggleMenu}>My Orders</MobileNavLink>
+                                <MobileNavLink to="/cart" onClick={toggleMenu} icon={<ShoppingBag size={18} />}>My Cart</MobileNavLink>
                                 <LogoutMobile onClick={handleLogout} />
                             </>
                         )}
@@ -208,9 +214,9 @@ const Navbar = () => {
                         {role === 'vendorOwner' && (
                             <>
                                 <UserProfileMobile user={authUser} role="Owner" />
-                                <MobileLink to="/category-management" onClick={toggleMenu}>category management</MobileLink>
-                                <MobileLink to="/menu-management" onClick={toggleMenu}>Menu Management</MobileLink>
-                                <MobileLink to="/staff-management" onClick={toggleMenu}>Staff</MobileLink>
+                                <MobileNavLink to="/category-management" onClick={toggleMenu}>category management</MobileNavLink>
+                                <MobileNavLink to="/menu-management" onClick={toggleMenu}>Menu Management</MobileNavLink>
+                                <MobileNavLink to="/staff-management" onClick={toggleMenu}>Staff</MobileNavLink>
                                 <LogoutMobile onClick={handleLogout} />
                             </>
                         )}
@@ -219,8 +225,8 @@ const Navbar = () => {
                         {role === 'vendorStaff' && (
                             <>
                                 <UserProfileMobile user={authUser} role="Staff" />
-                                <MobileLink to="/vendor/dashboard" onClick={toggleMenu}>Live Orders</MobileLink>
-                                <MobileLink to="/vendor/menu" onClick={toggleMenu}>Item Availability</MobileLink>
+                                <MobileNavLink to="/vendor/dashboard" onClick={toggleMenu}>Live Orders</MobileNavLink>
+                                <MobileNavLink to="/vendor/menu" onClick={toggleMenu}>Item Availability</MobileNavLink>
                                 <LogoutMobile onClick={handleLogout} />
                             </>
                         )}
@@ -233,15 +239,15 @@ const Navbar = () => {
 
 // --- Helper Components for Clean Code ---
 
-const MobileLink = ({ to, children, onClick, className = "", icon }: any) => (
-    <Link 
+const MobileNavLink = ({ to, children, onClick, className = "", icon }: any) => (
+    <NavLink 
         to={to} 
         onClick={onClick} 
         className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-orange-50 transition duration-200 ${className}`}
     >
         {icon && <span>{icon}</span>}
         {children}
-    </Link>
+    </NavLink>
 );
 
 const UserProfileMobile = ({ user, role }: any) => (

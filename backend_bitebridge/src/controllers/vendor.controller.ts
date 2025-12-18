@@ -168,7 +168,7 @@ const toggleShopStatus = async (req: Request, res: Response) => {
 };
 
 const createCategories = async (req: Request, res: Response) => {
-    const categoryNames: string[] = req.body;
+    const {categoryNames} = req.body as {categoryNames: string[]};
     const user = req.user;
 
     const vendorId = user?.vendorId;
@@ -241,7 +241,7 @@ const addCategory = async (req: Request, res: Response) => {
 
         if (existingCategory) {
             return res.status(400).json({
-                message: " Category already exist for this Vendor",
+                message: "This category name already exists.",
             });
         }
 
@@ -292,7 +292,6 @@ const getCategory = async (req: Request, res: Response) => {
 const getAllCategories = async (req: Request, res: Response) => {
     try {
         const vendorId = req.user?.vendorId;
-
         const categories = await Category.find({ vendorId: vendorId })
         .select('name')
         .lean();
@@ -707,6 +706,7 @@ const updateEmployee = async (req: Request, res: Response) => {
         }
         if (imgURl) {
             employee.imageUrl = imgURl.filename
+            console.log("update ho gya bhai")
         }
         employee.name = name
         employee.email = email
