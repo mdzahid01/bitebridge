@@ -4,10 +4,11 @@ import './index.css'
 import App from './App.tsx'
 import AuthProvider from './context/AuthContext.tsx'
 import { Toaster } from 'react-hot-toast'
-
+import { CartProvider } from './context/CartContext.tsx'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
+    <CartProvider>
       <App />
        <Toaster 
           position="bottom-center"
@@ -22,6 +23,7 @@ createRoot(document.getElementById('root')!).render(
             },
           }}
         />
+    </CartProvider>
     </AuthProvider>
   </StrictMode>,
 )

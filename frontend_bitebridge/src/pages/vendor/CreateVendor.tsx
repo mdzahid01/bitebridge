@@ -7,7 +7,6 @@ function CreateVendor() {
 
     const navigate = useNavigate()
 
-    // --- LOGIC START (No Changes Here) ---
     const [formData, setFormData] = useState({
         shopName: '',
         address: '',
@@ -79,7 +78,6 @@ function CreateVendor() {
             setLoading(false);
         }
     }
-    // --- LOGIC END ---
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 py-12">

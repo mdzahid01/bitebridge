@@ -8,6 +8,7 @@ import { fileURLToPath } from "url"
 // import connectDB from "./config/database.js"
 import authRouter from './routes/auth.routes.js'
 import vendorRouter from "./routes/vendorOwner/vendor.routes.js"
+import shopRouter from "./routes/shop.routes.js"
 
 
 const __filename = fileURLToPath(import.meta.url)
@@ -49,7 +50,7 @@ app.get("/",(req:Request,res:Response)=>{
 
 app.use("/api/auth", authRouter) //auth routes
 app.use("/api/vendors", vendorRouter) // vendorOwner routes
-
+app.use('/api/shop',shopRouter) // for shop visiter - customer and not logged in user
 
 
 export default app

@@ -6,10 +6,12 @@ import NotFound from "../pages/NotFound";
 import CreateVendor from "../pages/vendor/CreateVendor";
 import CreateCategory from "../pages/vendor/CreateCategory";
 import ProtectedRoute from "./ProtectedRoutes";
+import GuestOrCustomerRoutes from "./GuestOrCustomerRoutes";
 import CategoryManagementPage from "../pages/vendor/CategoryManagementPage";
 import StaffManagementPage from "../pages/vendor/StaffManagementPage";
 import MenuItemManagementPage from "../pages/vendor/MenuItemManagementPage";
 import MainLayout from "../components/layout/MainLayout";
+import VendorMenu from "../pages/customer/VendorMenu";
 
 const router = createBrowserRouter([
     {
@@ -21,6 +23,17 @@ const router = createBrowserRouter([
                 path: '/',
                 element: <HomePage />
             },
+
+            {
+                path: '/menu/:slug',
+                element:(
+                    <GuestOrCustomerRoutes>
+                        <VendorMenu />
+                    </GuestOrCustomerRoutes>
+                )
+            },
+
+            // vendorOwner wale routes
             {
                 path: '/create-vendor',
                 element: (

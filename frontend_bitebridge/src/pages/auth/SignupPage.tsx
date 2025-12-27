@@ -1,20 +1,22 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import authApi from '../../services/authApi';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate,useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Store, User } from 'lucide-react';
 import toast from 'react-hot-toast';
-import usePageTitle from '../../hooks/usePagetitle';
+import usePageTitle from '../../hooks/usePageTitle';
 
 function SignupPage() {
   usePageTitle("Signup")
   const navigate = useNavigate();
   const { setAuthUser } = useAuth();
+  const [searchparams] = useSearchParams()
+  const userType = searchparams.get('usertype')
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    role: 'customer',
+    role: userType || 'customer',
     password: '',
     confirmPassword: '',
   })

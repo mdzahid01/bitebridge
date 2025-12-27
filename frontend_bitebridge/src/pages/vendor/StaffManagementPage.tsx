@@ -165,7 +165,7 @@ function StaffManagementPage() {
         if (!window.confirm("Are you sure you want to delete this staff member?")) return;
         try {
             const response = await axiosClient.delete(`/vendors/delete-employee/${id}`)
-            // alert(`Deleted: ${response?.data?.deletedEmployee.name}`)
+            toast.success(`Deleted: ${response?.data?.deletedEmployee.name}`)
             fetchAllStaffs() // Refresh list
         } catch (error: any) {
             console.error("Delete error:", error);

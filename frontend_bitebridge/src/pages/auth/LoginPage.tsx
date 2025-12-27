@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Mail, Eye, LogIn, AlertCircle, EyeOff } from "lucide-react"; // ✅ Icons import kiye
 import authApi from "../../services/authApi";
 import { useAuth } from "../../context/AuthContext"; 
-import usePageTitle from "../../hooks/usePagetitle";
+import usePageTitle from "../../hooks/usePageTitle";
 
 function LoginPage() {
   usePageTitle("Login")
