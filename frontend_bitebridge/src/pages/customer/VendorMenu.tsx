@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { MapPin, Star, Search, ShoppingBag, Plus, Minus } from 'lucide-react';
 import LoadingSpinner from '../../components/layout/LoadingSpinner';
 import { useCart } from '../../context/CartContext';
-import FloatingCart from '../../components/cart/FloatingCart';
+// import FloatingCart from '../../components/cart/FloatingCart';
 import axiosClient from '../../services/axiosClient';
 
 
@@ -246,7 +246,7 @@ const VendorMenu = () => {
                     </div>
                 )}
             </div>
-            <FloatingCart />
+            {/* <FloatingCart /> */}
         </div>
     );
 };

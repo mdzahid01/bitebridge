@@ -1,4 +1,4 @@
-import { ShoppingBag, ChevronRight } from "lucide-react";
+import { ShoppingBag,ShoppingCart, ChevronRight } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 import { Link } from "react-router-dom";
 
@@ -14,11 +14,11 @@ const FloatingCart = () => {
       <Link to="/checkout" className="bg-green-600 text-white p-4 rounded-xl shadow-xl flex justify-between items-center hover:bg-green-700 transition-all cursor-pointer">
         <div className="flex flex-col items-start">
           <span className="font-bold text-lg uppercase flex items-center gap-2">
-            <ShoppingBag size={20} fill="white" /> {totalItems} ITEM{totalItems > 1 ? "S" : ""}
+            <ShoppingCart size={20} fill="white" /> {totalItems} ITEM{totalItems > 1 ? "S" : ""}
           </span>
-          <span className="text-xs text-green-100">
+          {/* <span className="text-xs text-green-100">
              Extra charges may apply
-          </span>
+          </span> */}
         </div>
         
         <div className="flex items-center gap-2 font-bold text-lg">
