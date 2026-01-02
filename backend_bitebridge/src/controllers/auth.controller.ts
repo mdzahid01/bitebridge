@@ -5,6 +5,7 @@ import fs from 'fs'
 
 import User from '../models/user.model.js'
 import generateTokenAndSetCookie from '../utils/generateToken.js'
+import {deleteImageFromCloudinary} from '../utils/cloudinary.utils.js'
 
 // import crypto from "crypto"
 // import jwt from 'jsonwebtoken'
@@ -78,22 +79,23 @@ const login = async (req: Request, res: Response) => {
 
 
 const signup = async (req: Request, res: Response) => {
+    const uploadedFile = req.file;
     try {
         const {name,email,phone,password,role} = req.body;
-        const imgURl = req.file;
-        console.log(name,email,phone,password,role,imgURl?.originalname)
+        console.log(name,email,phone,password,role,uploadedFile?.originalname)
         
         if(!name || !email || !phone || !password || !role){
-            if(imgURl){
-                fs.unlinkSync(imgURl.path)
+            if(uploadedFile){
+                await deleteImageFromCloudinary(uploadedFile)
+                // fs.unlinkSync(uploadedFile.path)
             }
             return res.status(400).json({
                 message:"All Fields are Required"
             })
         }
         if(phone.length!==10){
-            if(imgURl){
-                fs.unlinkSync(imgURl.path)
+            if(uploadedFile){
+                await deleteImageFromCloudinary(uploadedFile)
             }
              return res.status(400).json({
                 message: "Phone number must be 10 digit"
@@ -101,8 +103,8 @@ const signup = async (req: Request, res: Response) => {
         }
         const isNumberExist = await User.findOne({phone:phone})
          if(isNumberExist){    
-            if (req.file) {
-                fs.unlinkSync(req.file.path);
+            if (uploadedFile) {
+                await deleteImageFromCloudinary(uploadedFile)
             }
             return res.status(400).json({
                 message: "user Already exist with this Phone number"
@@ -112,8 +114,8 @@ const signup = async (req: Request, res: Response) => {
         const existingUser = await User.findOne({email:email})
 
         if(existingUser){
-            if (req.file) {
-                fs.unlinkSync(req.file.path);
+            if (uploadedFile) {
+                await deleteImageFromCloudinary(uploadedFile)
             }
             return res.status(400).json({
                 message: "user Already exist with this email"
@@ -121,8 +123,8 @@ const signup = async (req: Request, res: Response) => {
         }
 
         if(!validator.isEmail(email)){
-            if (req.file) {
-                fs.unlinkSync(req.file.path);
+            if (uploadedFile) {
+               await deleteImageFromCloudinary(uploadedFile)
             }
             return res.status(400).json({
                 message: "given email is not valid"
@@ -135,7 +137,7 @@ const signup = async (req: Request, res: Response) => {
             phone,
             password,
             role,
-            imageUrl: req.file?req.file.filename:null
+            imageUrl: uploadedFile?uploadedFile.path:""
         })
         if(newUser.role ==="customer"){
             newUser.permissions = ["create_order","edit_own_ordered_Items","view_own_orders"]
@@ -161,8 +163,8 @@ const signup = async (req: Request, res: Response) => {
         })
     } catch (error:any) {
         console.log(error.message)
-        if (req.file) {
-                fs.unlinkSync(req.file.path);
+        if (uploadedFile) {
+                 await deleteImageFromCloudinary(uploadedFile)
             }
         console.log("error:", error );
         res.status(500).json({

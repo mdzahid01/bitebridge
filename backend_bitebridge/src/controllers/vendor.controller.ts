@@ -9,21 +9,28 @@ import path from "path";
 import QRCode from "qrcode";
 import MenuItem, { iMenuItem } from "../models/manuItem.model.js";
 import { generateSlug } from "../utils/slugGenerator.js";
+import { deleteImageFromCloudinary } from "../utils/cloudinary.utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const createVendor = async (req: Request, res: Response) => {
+    const shopImage = req.file;
     try {
         const { shopName, address } = req.body;
-        const shopImage = req.file;
         const user = req.user;
 
         // basic validators
         if (!user) {
+            if(shopImage){
+                await deleteImageFromCloudinary(shopImage)
+            }
             return res.status(401).json({ message: "Unauthorized, user not found." });
         }
         if (user.role !== "vendorOwner") {
+            if(shopImage){
+                await deleteImageFromCloudinary(shopImage)
+            }
             return res
                 .status(401)
                 .json({
@@ -31,6 +38,9 @@ const createVendor = async (req: Request, res: Response) => {
                 });
         }
         if (!shopName || !address) {
+            if(shopImage){
+                await deleteImageFromCloudinary(shopImage)
+            }
             return res
                 .status(400)
                 .json({ message: "ShopName and address are required" });
@@ -43,7 +53,9 @@ const createVendor = async (req: Request, res: Response) => {
         //ensuring no vendorshop exist before creating for same user
         const existingVendor = await Vendor.findOne({ ownerId: user._id });
         if (existingVendor) {
-            fs.unlinkSync(shopImage.path);
+           if(shopImage){
+                await deleteImageFromCloudinary(shopImage)
+            }
             return res
                 .status(409)
                 .json({ message: "This user has already created a vendor." });
@@ -96,7 +108,7 @@ const createVendor = async (req: Request, res: Response) => {
             slug: finalSlug,
             qrCode: qrFileName,
             subscriptionExpiry: expiryDate,
-            imageUrl: shopImage.filename,
+            imageUrl: shopImage.path,
         });
 
         //saving vendor
@@ -112,8 +124,8 @@ const createVendor = async (req: Request, res: Response) => {
             vendor: savedVendor,
         });
     } catch (error: any) {
-        if (req.file) {
-            fs.unlinkSync(req.file.path);
+        if(shopImage){
+            await deleteImageFromCloudinary(shopImage)  
         }
         console.log("error in createVendor:", error);
         res.status(500).json({
@@ -451,12 +463,12 @@ const deleteManyCategories = async (req: Request, res: Response) => {
 };
 
 const addEmployee = async (req: Request, res: Response) => {
-    const imgURl = req.file
+    const uploadedFile = req.file
 
     try {
         const vendorId = req.user?.vendorId;
         if (!vendorId) {
-            if (imgURl) fs.unlinkSync(imgURl.path);
+            if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
             return res.status(404).json({ message: "Vendor not found." });
         }
 
@@ -464,20 +476,20 @@ const addEmployee = async (req: Request, res: Response) => {
         const role = "vendorStaff";
 
         if (!name || !email || !password || !phone) {
-            if (imgURl) fs.unlinkSync(imgURl.path);
+            if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
             return res.status(400).json({
                 message: "All fields are required"
             })
         }
 
         if (!validator.isEmail(email)) {
-            if (imgURl) fs.unlinkSync(imgURl.path);
+            if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
             return res.status(400).json({
                 message: `${email} is not valid`
             })
         }
         if (phone.length !== 10) {
-            if (imgURl) fs.unlinkSync(imgURl.path);
+            if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
             return res.status(400).json({
                 message: "mobile number must be 10 digit"
             })
@@ -485,7 +497,7 @@ const addEmployee = async (req: Request, res: Response) => {
 
         const isNumberExist = await User.findOne({ phone: phone }, null, { withDeleted: true })
         if (isNumberExist) {
-            if (imgURl) fs.unlinkSync(imgURl.path);
+            if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
             return res.status(400).json({
                 message: "user Already exist with this Phone number"
             })
@@ -493,14 +505,14 @@ const addEmployee = async (req: Request, res: Response) => {
 
         const existingUser = await User.findOne({ email: email }, null, { withDeleted: true })
         if (existingUser) {
-            if (imgURl) fs.unlinkSync(imgURl.path);
+            if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
             return res.status(400).json({
                 message: "user Already exist with this email"
             })
         }
 
         if (password.length < 6) {
-            if (imgURl) fs.unlinkSync(imgURl.path);
+            if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
             return res.status(400).json({
                 message: "Password must be at least 6 characters long"
             })
@@ -521,13 +533,13 @@ const addEmployee = async (req: Request, res: Response) => {
             vendorId: vendorId,
             password,
             permissions: defaultPermissions,
-            imageUrl: imgURl ? imgURl.filename : null
+            imageUrl: uploadedFile ? uploadedFile.path : ''
         })
 
         const savedEmployee = await newEmployee.save();
 
         if (!savedEmployee) {
-            if (imgURl) fs.unlinkSync(imgURl.path)
+            if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
             return res.status(500).json({
                 message: "Internal Server Error"
             })
@@ -541,9 +553,7 @@ const addEmployee = async (req: Request, res: Response) => {
             newEmployee: employeeToSend
         })
     } catch (err: any) {
-        if (imgURl) {
-            fs.unlinkSync(imgURl.path);
-        }
+        if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
         console.log("AddEmployee Error: ", err);
         return res.status(500).json({
             message: "Internal Server Error",
@@ -640,37 +650,37 @@ const getAllDeletedEmployee = async (req: Request, res: Response) => {
 }
 
 const updateEmployee = async (req: Request, res: Response) => {
-    const imgURl = req.file
+    const uploadedFile = req.file
     try {
         const vendorId = req.user?.vendorId
         const { name, email, password, phone } = req.body
 
         if (!name || !email || !phone) {
-            if (imgURl) fs.unlinkSync(imgURl?.path)
+            if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
             return res.status(400).json({
                 message: "No field with blank data is accepted",
             })
         }
         if (name.length < 6) {
-            if (imgURl) fs.unlinkSync(imgURl?.path)
+            if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
             return res.status(400).json({
                 message: "Name should be atleast 6 charecter long",
             })
         }
         if (!validator.isEmail(email)) {
-            if (imgURl) fs.unlinkSync(imgURl?.path)
+            if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
             return res.status(400).json({
                 message: "Invalid Email",
             })
         }
         if (phone.length !== 10) {
-            if (imgURl) fs.unlinkSync(imgURl?.path)
+            if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
             return res.status(400).json({
                 message: "Mobile number should be 10 digit long",
             })
         }
         if (password && password.length < 6) {
-            if (imgURl) fs.unlinkSync(imgURl?.path)
+            if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
             return res.status(400).json({
                 message: "Password should be atleast 6 charecter long",
             })
@@ -678,7 +688,7 @@ const updateEmployee = async (req: Request, res: Response) => {
 
         const { id } = req.params
         if (!id) {
-            if (imgURl) fs.unlinkSync(imgURl?.path)
+            if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
             return res.status(400).json({
                 message: "staff ID is required",
             })
@@ -690,13 +700,13 @@ const updateEmployee = async (req: Request, res: Response) => {
         })
 
         if (!employee) {
-            if (imgURl) fs.unlinkSync(imgURl?.path)
+            if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
             return res.status(400).json({
                 message: "staff ID is required",
             })
         }
 
-        if (imgURl && employee.imageUrl) {
+        if (uploadedFile && employee.imageUrl) {
             const oldImageFile = path.join(__dirname, '..', '..', 'media', 'avatars', employee.imageUrl)
             if (fs.existsSync(oldImageFile)) {
                 fs.unlinkSync(oldImageFile)
@@ -704,8 +714,8 @@ const updateEmployee = async (req: Request, res: Response) => {
 
             }
         }
-        if (imgURl) {
-            employee.imageUrl = imgURl.filename
+        if (uploadedFile) {
+            employee.imageUrl = uploadedFile.filename
             console.log("update ho gya bhai")
         }
         employee.name = name
@@ -723,7 +733,7 @@ const updateEmployee = async (req: Request, res: Response) => {
 
 
     } catch (err: any) {
-        if (imgURl) fs.unlinkSync(imgURl?.path)
+        if (uploadedFile) await deleteImageFromCloudinary(uploadedFile);
         console.log("updateEmployee Error: ", err);
         return res.status(500).json({
             message: "Internal Server Error",

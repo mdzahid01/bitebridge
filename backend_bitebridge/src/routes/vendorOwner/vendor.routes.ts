@@ -30,7 +30,7 @@ import {
     deleteManyMenuItems,
 
 } from "../../controllers/vendor.controller.js";
-import { compressImage } from "../../middlewares/compressImage.middleware.js";
+// import { compressImage } from "../../middlewares/compressImage.middleware.js";
 const vendorRouter = Router()
 
 //vendor creation
@@ -68,7 +68,7 @@ vendorRouter.post('/add-menu-item',
     checkVendorExist,
     uploadMenuItem.single('menuItemImage'),
     multerErrorHandler,
-    compressImage,
+    // compressImage,
     addMenuItem
 )
 vendorRouter.get('/get-menu-item/:id',
@@ -103,7 +103,7 @@ vendorRouter.put('/update-menu-item/:id',
     checkVendorExist,
     uploadMenuItem.single('menuItemImage'),
     multerErrorHandler,
-    compressImage,
+    // compressImage,
     updateMenuItem,
 )
 export default vendorRouter
