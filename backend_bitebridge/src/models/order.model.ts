@@ -5,14 +5,19 @@ export interface iOrderItem extends Document {
     name: string,
     qty: number,
     price: number,
-    status: "pending" | "preparing" | "ready" | "delevered" | "cancelled", 
+    status: "pending" | "served", 
 }
 
 export interface iOrder extends Document{
     vendorId: mongoose.Schema.Types.ObjectId,
-    customerId?: mongoose.Schema.Types.ObjectId,
+    customerId?: mongoose.Schema.Types.ObjectId | null,
     tokenNo: string,
-    paymentMethod: 'upi' | 'cash' | 'card',
+    customerDetail: {
+        name: string,
+        phone:string,
+    },
+    orderStatus: "pending" | "completed"
+    paymentMethod: 'upi' | 'cash',
     transactionId?: string | null,
     totalAmount: number,
     items: iOrderItem[],
@@ -41,7 +46,7 @@ const orderItemSchema = new Schema<iOrderItem>({
     },
     status: {
         type: String,
-        enum: ['pending', 'preparing', 'ready', 'delivered', 'cancelled'],
+        enum: ['pending', 'served'],
         default: 'pending',
     },  
 })
@@ -58,6 +63,18 @@ const orderSchema = new Schema <iOrder>({
         ref: 'User',
         default: null, // Default to null for guest orders
     },
+    customerDetail:{
+        name: {type:String, required: true},
+        phone: {type:String, required: true}
+    }
+    ,
+    orderStatus:{
+        type: String,
+        enum: ["pending", 'completed'],
+        default: "pending",
+        index: true
+    }
+    ,
      tokenNo: {
         type: String,
         required: true,

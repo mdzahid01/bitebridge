@@ -7,7 +7,7 @@ const connectDB = async(MONGOURI: string) =>{
     })
     .catch((err:string)=>{
         console.log("error connecting to database: ",err);
-        
+        process.exit(1);
     })
 }
 

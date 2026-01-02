@@ -7,6 +7,7 @@ import CreateVendor from "../pages/vendor/CreateVendor";
 import CreateCategory from "../pages/vendor/CreateCategory";
 import ProtectedRoute from "./ProtectedRoutes";
 import GuestOrCustomerRoutes from "./GuestOrCustomerRoutes";
+import CheckoutPage from "../pages/customer/CheckoutPage";
 import CategoryManagementPage from "../pages/vendor/CategoryManagementPage";
 import StaffManagementPage from "../pages/vendor/StaffManagementPage";
 import MenuItemManagementPage from "../pages/vendor/MenuItemManagementPage";
@@ -29,6 +30,14 @@ const router = createBrowserRouter([
                 element:(
                     <GuestOrCustomerRoutes>
                         <VendorMenu />
+                    </GuestOrCustomerRoutes>
+                )
+            },
+            {
+                path: '/checkout',
+                element:(
+                    <GuestOrCustomerRoutes>
+                        <CheckoutPage />
                     </GuestOrCustomerRoutes>
                 )
             },
@@ -57,7 +66,7 @@ const router = createBrowserRouter([
                         <CategoryManagementPage />
                     </ProtectedRoute>
                 )
-            },
+            },       
             {
                 path: '/staff-management',
                 element: (

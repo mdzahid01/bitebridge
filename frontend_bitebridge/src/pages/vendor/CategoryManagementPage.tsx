@@ -18,7 +18,8 @@ import { Link } from "react-router-dom";
 
 
 function CategoryManagementPage() {
-    const [allCategories, setAllCategories] = useState<iCategory[] | null>(null);
+    // const [allCategories, setAllCategories] = useState<iCategory[] | null>(null);
+    const [allCategories, setAllCategories] = useState<iCategory[]>([]);
     const [isModalOpen,setIsModalOpen] = useState<boolean>(false)
     const [editModal,setEditModal] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
@@ -35,7 +36,7 @@ function CategoryManagementPage() {
     const fetchAllCategories = async ()=>{
             try {
                 const response = await axiosClient.get('vendors/get-all-categories')
-            setAllCategories(response.data.categories)
+            setAllCategories(response.data.categories.sort((a:iCategory,b:iCategory)=>a.name.localeCompare(b.name)))
             } catch (err: any) {
                 console.log('error while getting all categories: ', err);
                 setError(err.response?.data?.message) 
@@ -112,19 +113,27 @@ function CategoryManagementPage() {
     }
 
     const deleteCategory = async(id:string) =>{
+        const categoryToRestore = allCategories.find(cat => cat._id === id);
         try {
+            setAllCategories(prev=>prev.filter(cat=> cat._id!= id))
+            // setAllCategories(prev => prev.filter(cat => cat._id !== id))
             const response = await axiosClient.delete(`/vendors/delete-category/${id}`)
             alert(`deleted Category: ${response?.data?.deletedCategory.name}`)
         } catch (error:any) {
             console.error("Delete error:", error);
-            setError(error.response?.data?.message || "An error occurred.");
+            setError(error.response?.data?.message || "Category deletion failed. Try Again...");
+            if(categoryToRestore){
+                setAllCategories(prev => [...prev, categoryToRestore]);
+            }
         }
         
     }
 
     const deleteSelectedCategory = async()=>{
         console.log(selectDelete);
+        const categoryToRestore = allCategories.filter(cat=>selectDelete.includes(cat._id))
         try {
+            setAllCategories(prev=> prev.filter(cat=>!selectDelete.includes(cat._id)))
             const dataToSend = {
                 deletingCategory:selectDelete
             }
@@ -132,11 +141,12 @@ function CategoryManagementPage() {
             if(response.status == 200){
                 alert(response.data.message)
                 setSelectDelete([])
-                fetchAllCategories()
+                // fetchAllCategories()
             }
         } catch (error: any) {
             console.error("DeleteMany error:", error);
-            setError(error.response?.data?.message || "An error occurred.");
+            setError(error.response?.data?.message || "Category deletion failed. Try Again...");
+            setAllCategories(prev=>[...prev, ...categoryToRestore].sort((a, b) => a.name.localeCompare(b.name)))
         }
 
     }

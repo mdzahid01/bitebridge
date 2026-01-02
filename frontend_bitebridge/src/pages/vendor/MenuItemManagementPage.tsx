@@ -407,7 +407,7 @@ function MenuItemManagementPage() {
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="text-gray-500 bg-gray-100 px-2 py-0.5 rounded text-xs">
                                         {/* Category Name Dikhane ke liye logic agar item object me category name hai */}
-                                        {item.categoryId.name}
+                                        {item.categoryId?.name ||'General'}
                                     </span>
                                     <span className={`text-xs font-medium px-2 py-0.5 rounded ${item.availability ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                         {item.availability ? 'Available' : 'Unavailable'}

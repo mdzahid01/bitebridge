@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { MapPin, Star, Search, ShoppingBag, Plus, Minus } from 'lucide-react';
+import { MapPin, Star, Search,  ChevronDown } from 'lucide-react';
 import LoadingSpinner from '../../components/layout/LoadingSpinner';
 import { useCart } from '../../context/CartContext';
 // import FloatingCart from '../../components/cart/FloatingCart';
@@ -54,6 +54,7 @@ const VendorMenu = () => {
     const [categories, setCategories] = useState<ICategory[]>([]);
     const [allItems, setAllItems] = useState<IProduct[]>([]);
     const [filteredItems, setFilteredItems] = useState<IProduct[]>([]);
+    const [searchQuery, setSearchQuery] = useState<string>('')
 
     const [selectedCategory, setSelectedCategory] = useState<string>("all");
     const [loading, setLoading] = useState<boolean>(true);
@@ -84,17 +85,38 @@ const VendorMenu = () => {
         fetchShopData();
     }, [slug]);
 
+    useEffect(() => {
+    let result = allItems;
+
+    // Filter by Category
+    if (selectedCategory !== "all") {
+        result = result.filter((item) => item.category?._id === selectedCategory);
+    }
+
+    // Filter by Search Query
+    if (searchQuery.trim() !== "") {
+        const query = searchQuery.toLowerCase();
+        result = result.filter((item) => 
+            item.name.toLowerCase().includes(query) || 
+            item.description?.toLowerCase().includes(query) // Description me bhi search karega
+        );
+    }
+
+    setFilteredItems(result);
+
+  }, [selectedCategory, searchQuery, allItems]);
+
     // Handle Category Click (Type: string)
-    const handleCategoryClick = (catId: string) => {
-        setSelectedCategory(catId);
-        if (catId === "all") {
-            setFilteredItems(allItems);
-        } else {
-            // Optional chaining (?.) zaroori hai incase category null ho
-            const filtered = allItems.filter((item) => item.category?._id === catId);
-            setFilteredItems(filtered);
-        }
-    };
+    // const handleCategoryClick = (catId: string) => {
+    //     setSelectedCategory(catId);
+    //     if (catId === "all") {
+    //         setFilteredItems(allItems);
+    //     } else {
+    //         // Optional chaining (?.) zaroori hai incase category null ho
+    //         const filtered = allItems.filter((item) => item.category?._id === catId);
+    //         setFilteredItems(filtered);
+    //     }
+    // };
 
     if (loading) return <LoadingSpinner />;
 
@@ -132,34 +154,47 @@ const VendorMenu = () => {
             </div>
 
             {/* --- CATEGORY FILTER --- */}
-            <div className="sticky top-0 z-30 bg-white shadow-sm py-3 px-4 flex gap-3 overflow-x-auto no-scrollbar">
-                <button
-                    onClick={() => handleCategoryClick("all")}
-                    className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === "all"
-                            ? "bg-gray-900 text-white shadow-md"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        }`}
-                >
-                    All Items
-                </button>
-                {categories.map((cat) => (
-                    <button
-                        key={cat._id}
-                        onClick={() => handleCategoryClick(cat._id)}
-                        className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === cat._id
-                                ? "bg-gray-900 text-white shadow-md"
-                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                            }`}
-                    >
-                        {cat.name}
-                    </button>
-                ))}
+            {/* --- FILTER & SEARCH BAR (Sticky) --- */}
+      <div className="sticky top-16 z-30 bg-white shadow-md py-4 px-4">
+        <div className="container mx-auto flex flex-col sm:flex-row gap-3">
+            
+            {/* 🔍 Search Input */}
+            <div className="relative flex-grow">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <input 
+                    type="text" 
+                    placeholder="Search dishes (e.g. Paneer, Pizza)..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                />
             </div>
+
+            {/* 🔽 Category Dropdown */}
+            <div className="relative sm:w-1/3">
+                <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full appearance-none pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-white cursor-pointer"
+                >
+                    <option value="all">🍽️ All Menu</option>
+                    {categories.map((cat) => (
+                        <option key={cat._id} value={cat._id}>
+                            {cat.name}
+                        </option>
+                    ))}
+                </select>
+                {/* Custom Dropdown Arrow */}
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={20} />
+            </div>
+
+        </div>
+      </div>
 
             {/* --- MENU ITEMS GRID --- */}
             <div className="container mx-auto px-4 py-6">
                 <h2 className="text-lg font-bold text-gray-800 mb-4">
-                    {selectedCategory === 'all' ? 'Full Menu' : 'Recommended for you'}
+                    {selectedCategory === 'all' ? 'Full Menu' : categories.find(item =>item._id==selectedCategory )?.name || "Menu" }
                 </h2>
 
                 {filteredItems.length === 0 ? (

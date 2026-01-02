@@ -12,6 +12,7 @@ import {
     User,
     ChevronDown
 } from 'lucide-react';
+import { useCart } from '../../context/CartContext';
 
 import { useAuth } from '../../context/AuthContext' 
 import authApi from '../../services/authApi';
@@ -20,6 +21,7 @@ const Navbar = () => {
     const { authUser, setAuthUser } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const navigate = useNavigate();
+    const {getCartItemsCount} = useCart();
 
     // ✅ Added whitespace-nowrap to prevent text wrapping
     const getLinkClass = ({isActive}: {isActive: boolean}) =>
@@ -59,6 +61,7 @@ const Navbar = () => {
                         <Link to="/" className="flex-shrink-0 flex items-center gap-2">
                             <span className="bg-orange-600 text-white p-2 rounded-lg">
                                 <Store size={24} />
+                                {/* <img src="/logo.png" alt="" /> */}
                             </span>
                             <span className="font-bold text-xl lg:text-2xl tracking-tighter text-gray-800">
                                 Bite<span className="text-orange-600">Bridge</span>
@@ -101,10 +104,10 @@ const Navbar = () => {
                                     <span className="text-sm font-semibold">Scan QR</span>
                                 </NavLink>
                                 <NavLink to="/my-orders" className={getLinkClass}>My Orders</NavLink>
-                                <NavLink to="/cart" className="relative text-gray-600 hover:text-orange-600 transition-transform hover:scale-105 p-2">
+                                <NavLink to="/checkout" className="relative text-gray-600 hover:text-orange-600 transition-transform hover:scale-105 p-2">
                                     <ShoppingBag size={24} />
                                     <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center border-2 border-white">
-                                        0
+                                       {getCartItemsCount()}
                                     </span>
                                 </NavLink>
                             </>
@@ -202,8 +205,21 @@ const Navbar = () => {
                                 <MobileNavLink to="/" onClick={toggleMenu}>Home</MobileNavLink>
                                 <MobileNavLink to="/scan" onClick={toggleMenu} icon={<QrCode size={18} />}>Scan QR</MobileNavLink>
                                 <MobileNavLink to="/my-orders" onClick={toggleMenu}>My Orders</MobileNavLink>
-                                <MobileNavLink to="/cart" onClick={toggleMenu} icon={<ShoppingBag size={18} />}>My Cart</MobileNavLink>
-                                <LogoutMobile onClick={handleLogout} />
+<MobileNavLink 
+    to="/checkout" 
+    onClick={toggleMenu} 
+    icon={<ShoppingBag size={18} />}
+>
+    <div className="flex items-start"> {/* Flex container taaki text aur power align rahein */}
+        <span>My Cart</span>
+        
+        {(getCartItemsCount() > 0) && (
+            <span className='ml-1 bg-red-500 text-white text-[10px] font-bold px-1.5 h-4 min-w-[16px] flex items-center justify-center rounded-full relative -top-1'>
+                {getCartItemsCount()}
+            </span>
+        )}
+    </div>
+</MobileNavLink>                                <LogoutMobile onClick={handleLogout} />
                             </>
                         )}
 
