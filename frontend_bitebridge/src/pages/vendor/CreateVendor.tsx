@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent } from "react"
 import axiosClient from "../../services/axiosClient";
 import { useNavigate } from "react-router-dom";
-import { Store, MapPin, Upload, Image as ImageIcon, Loader2, AlertCircle } from "lucide-react"; // Icons add kiye
+import { Store, MapPin, Upload, Loader2, AlertCircle } from "lucide-react"; // Icons add kiye
 
 function CreateVendor() {
 
