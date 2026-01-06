@@ -112,7 +112,7 @@ userSchema.pre<Query<iUser,any>>(/^find/, function (next){
 
 userSchema.virtual('fullImageUrl').get(function(){
     if(this.imageUrl){
-        return `${process.env.BACKEND_URL}/media/avatars/${this.imageUrl}`
+        return this.imageUrl
     }
 })
 
