@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import Vendor from "../models/vendor.model.js";
 import Category from "../models/category.model.js";
-import MenuItem from "../models/manuItem.model.js";
+import MenuItem from "../models/menuItem.model.js";
 
 const getShopDataBySlug = async (req: Request, res: Response) => {
     try {

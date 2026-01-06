@@ -1,21 +1,17 @@
 import { Request, Response } from "express";
 import Vendor from "../models/vendor.model.js";
 import User from "../models/user.model.js";
-import fs from "fs";
 import validator from 'validator'
 import Category, { iCategory } from "../models/category.model.js";
-import { fileURLToPath } from "url";
-import path from "path";
 import QRCode from "qrcode";
-import MenuItem, { iMenuItem } from "../models/manuItem.model.js";
+import MenuItem, { iMenuItem } from "../models/menuItem.model.js";
 import { generateSlug } from "../utils/slugGenerator.js";
 import { deleteImageFromCloudinary } from "../utils/cloudinary.utils.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import cloudinary from "../config/cloudinary.js";
 
 const createVendor = async (req: Request, res: Response) => {
     const shopImage = req.file;
+    let qrCloudinaryPublicId = ""
     try {
         const { shopName, address } = req.body;
         const user = req.user;
@@ -78,16 +74,7 @@ const createVendor = async (req: Request, res: Response) => {
 
         const shopUrl = `${process.env.FRONTEND_URL}/menu/${finalSlug}`;
 
-        const qrFileName = `qr-${finalSlug}.png`;
-        const qrDir = path.join(process.cwd(), 'media', 'qrcodes')
-        const qrFilePath = path.join(qrDir,qrFileName)
-
-        if(!fs.existsSync(qrDir)){
-            fs.mkdirSync(qrDir, { recursive: true })
-        }
-
-        // await QRCode.toFile(qrFilePath,shopUrl)
-        await QRCode.toFile(qrFilePath, shopUrl, {
+        const qrDataUrl = await QRCode.toDataURL(shopUrl, {
             width: 300,
             margin: 2,
             color: {
@@ -95,6 +82,14 @@ const createVendor = async (req: Request, res: Response) => {
                 light: "#FFFFFF"
             }
         });
+
+        const qrUploadResponse = await cloudinary.uploader.upload(qrDataUrl,{
+            folder: "bitebridge/qrcodes",
+            public_id: `qr-${finalSlug}`,
+            resource_type: "image"
+        })
+
+        qrCloudinaryPublicId = qrUploadResponse.public_id;
 
         // Set up the 7-day trial expiry date
         const today = new Date();
@@ -106,7 +101,7 @@ const createVendor = async (req: Request, res: Response) => {
             shopName,
             address,
             slug: finalSlug,
-            qrCode: qrFileName,
+            qrCode: qrUploadResponse.secure_url,
             subscriptionExpiry: expiryDate,
             imageUrl: shopImage.path,
         });
@@ -126,6 +121,10 @@ const createVendor = async (req: Request, res: Response) => {
     } catch (error: any) {
         if(shopImage){
             await deleteImageFromCloudinary(shopImage)  
+        }
+        // agar QR ban gya but db me save fail hua to QR bhi udao
+        if(qrCloudinaryPublicId){
+            await deleteImageFromCloudinary(qrCloudinaryPublicId)  
         }
         console.log("error in createVendor:", error);
         res.status(500).json({
@@ -706,17 +705,11 @@ const updateEmployee = async (req: Request, res: Response) => {
             })
         }
 
-        if (uploadedFile && employee.imageUrl) {
-            const oldImageFile = path.join(__dirname, '..', '..', 'media', 'avatars', employee.imageUrl)
-            if (fs.existsSync(oldImageFile)) {
-                fs.unlinkSync(oldImageFile)
-                console.log("previous image has been deleted...");
-
-            }
-        }
         if (uploadedFile) {
-            employee.imageUrl = uploadedFile.filename
-            console.log("update ho gya bhai")
+            if (employee.imageUrl) {
+                await deleteImageFromCloudinary(employee.imageUrl);
+            }
+            employee.imageUrl = uploadedFile.path;
         }
         employee.name = name
         employee.email = email
@@ -830,7 +823,7 @@ const addMenuItem = async (req: Request, res: Response) => {
         const { name, category, price } = req.body
 
         if (!name || !name.trim() || !category || price === undefined || price === '') {
-            if (menuItemImage) fs.unlinkSync(menuItemImage.path);
+            if (menuItemImage) await deleteImageFromCloudinary(menuItemImage);
             return res.status(400).json({
                 message: "All fields (Name, Category, Price) are required"
             })
@@ -843,7 +836,7 @@ const addMenuItem = async (req: Request, res: Response) => {
         }
         const isCategoryExist = await Category.findOne({ vendorId: vendorId, _id: category })
         if (!isCategoryExist) {
-            if (menuItemImage) fs.unlinkSync(menuItemImage.path);
+            if (menuItemImage) await deleteImageFromCloudinary(menuItemImage);
             return res.status(400).json({
                 message: "Invalid Category given"
             })
@@ -861,7 +854,7 @@ const addMenuItem = async (req: Request, res: Response) => {
             vendorId: vendorId,
             categoryId: category,
             price: numPrice,
-            imageUrl: menuItemImage ? menuItemImage.filename : null
+            imageUrl: menuItemImage ? menuItemImage.path : null
         })
 
 
@@ -873,7 +866,7 @@ const addMenuItem = async (req: Request, res: Response) => {
         })
 
     } catch (err: any) {
-        if (menuItemImage) fs.unlinkSync(menuItemImage?.path)
+        if (menuItemImage) await deleteImageFromCloudinary(menuItemImage);
         return res.status(500).json({
             message: "Internal Server Error",
             error: err.message
@@ -949,7 +942,7 @@ const updateMenuItem = async (req: Request, res: Response) => {
 
         // 1. Basic ID Check
         if (!id) {
-            if (menuItemImage) fs.unlinkSync(menuItemImage.path);
+            if (menuItemImage) await deleteImageFromCloudinary(menuItemImage);
             return res.status(400).json({ message: "Menu Item ID is required" });
         }
 
@@ -957,7 +950,7 @@ const updateMenuItem = async (req: Request, res: Response) => {
         const menuItem = await MenuItem.findOne({ _id: id, vendorId: vendorId });
 
         if (!menuItem) {
-            if (menuItemImage) fs.unlinkSync(menuItemImage.path);
+            if (menuItemImage) await deleteImageFromCloudinary(menuItemImage);
             return res.status(404).json({ message: "Item not found or you don't own it" });
         }
 
@@ -965,7 +958,7 @@ const updateMenuItem = async (req: Request, res: Response) => {
         if (category) {
             const categoryExists = await Category.findOne({ _id: category, vendorId: vendorId });
             if (!categoryExists) {
-                if (menuItemImage) fs.unlinkSync(menuItemImage.path);
+                if (menuItemImage) await deleteImageFromCloudinary(menuItemImage);
                 return res.status(400).json({ message: "Invalid Category or it doesn't belong to you" });
             }
             menuItem.categoryId = category;
@@ -978,7 +971,7 @@ const updateMenuItem = async (req: Request, res: Response) => {
             });
 
             if(existingMenuItem && existingMenuItem._id.toString() !== id){
-                if (menuItemImage) fs.unlinkSync(menuItemImage.path);
+                if (menuItemImage) await deleteImageFromCloudinary(menuItemImage);
                 return res.status(409).json({
                     message: "You already have an item with this name.",
                 })
@@ -990,13 +983,10 @@ const updateMenuItem = async (req: Request, res: Response) => {
         if (menuItemImage) {
             // A. Purani file delete karo (Agar exist karti hai)
             if (menuItem.imageUrl) {
-                const oldImagePath = path.join(__dirname, '..', '..', 'media', 'menuItems', menuItem.imageUrl);
-                if (fs.existsSync(oldImagePath)) {
-                    fs.unlinkSync(oldImagePath);
-                }
+                await deleteImageFromCloudinary(menuItem.imageUrl);
             }
             // B. Nayi file ka naam set karo
-            menuItem.imageUrl = menuItemImage.filename;
+            menuItem.imageUrl = menuItemImage.path;
         }
         
         // Price undefined ya empty string nahi hona chahiye
@@ -1020,9 +1010,7 @@ const updateMenuItem = async (req: Request, res: Response) => {
         });
 
     } catch (err: any) {
-        if (menuItemImage) {
-            fs.unlinkSync(menuItemImage.path);
-        }
+        if (menuItemImage) await deleteImageFromCloudinary(menuItemImage);
         console.log("updateMenuItem Error: ", err);
         return res.status(500).json({
             message: "Internal Server Error",
@@ -1055,11 +1043,7 @@ const deleteMenuItem = async (req: Request, res: Response) => {
         // 3. Image Cleanup (Safai Abhiyaan 🧹)
         // Agar item delete ho gaya, to uski image bhi server se uda do
         if (deletedItem.imageUrl) {
-            const imagePath = path.join(__dirname, '..', '..', 'media', 'menuItems', deletedItem.imageUrl);
-            
-            if (fs.existsSync(imagePath)) {
-                fs.unlinkSync(imagePath);
-            }
+            await deleteImageFromCloudinary(deletedItem.imageUrl);
         }
 
         return res.status(200).json({
@@ -1105,15 +1089,13 @@ const deleteManyMenuItems = async (req: Request, res: Response) => {
         }
 
         // pahle image delete krenge server se
-        itemsToDelete.forEach((item) => {
+
+        const deletePromises = itemsToDelete.map(async (item) => {
             if (item.imageUrl) {
-                const imagePath = path.join(__dirname, '..', '..', 'media', 'menuItems', item.imageUrl);
-                
-                if (fs.existsSync(imagePath)) {
-                    fs.unlinkSync(imagePath);
-                }
+                await deleteImageFromCloudinary(item.imageUrl);
             }
         });
+        await Promise.all(deletePromises);
 
 
         const deleteResult = await MenuItem.deleteMany({
