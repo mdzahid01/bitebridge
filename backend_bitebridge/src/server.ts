@@ -18,7 +18,7 @@ const startServer = async () =>{
         await connectDB(MONGO_URI);
 
         app.listen(PORT,()=>{
-        console.log(`🚀 Server running on:  https://bitebridge.onrender.com/`);
+        console.log(`🚀 Server running on:  http://localhost:5400`);
 })
     }catch(err: any){
         console.log("🔴 Server startup failed:", err);

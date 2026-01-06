@@ -4,6 +4,9 @@ import jwt from 'jsonwebtoken';
 import { iUser } from "../models/user.model.js"; 
 
 const generateTokenAndSetCookie = (user: iUser,res: Response)=>{
+    
+    const isProduction = process.env.NODE_ENV === 'production'
+
     const token = jwt.sign(
         {
             id: user._id,
@@ -19,10 +22,9 @@ const generateTokenAndSetCookie = (user: iUser,res: Response)=>{
 
     res.cookie('jwt', token, {
         httpOnly: true,
-        // secure: process.env.NODE_ENV !== 'development',
-        secure: true,
+        secure: isProduction,
         // sameSite: 'strict',
-        sameSite: 'none',
+        sameSite: isProduction? 'none' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 }
