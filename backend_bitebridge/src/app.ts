@@ -15,25 +15,17 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app : Application = express()
-
+app.set("trust proxy",1);
 // essential middlewares
-app.use(cors({origin: process.env.FRONTEND_URL || "*", credentials:true}))
+app.use(cors({
+    origin: [
+        "https://bitebridge-zeta.vercel.app",
+        "http://localhost:5173",
+    ],
+     credentials:true,
+     methods: ["GET", "POST", "PUT", "DELETE"],
+}))
 
-// app.use(cors({
-//   origin: [
-//     "http://localhost:5173",
-//     "https://41n3b4bc-5173.inc1.devtunnels.ms"
-//   ],
-//   credentials: true
-// }));
-
-// app.use(cors({
-//   origin: [
-//     "http://localhost:5173",
-//     /^https:\/\/.*\.devtunnels\.ms$/,
-//   ],
-//   credentials: true
-// }));
 
 
 app.use(cookieParser()) 
