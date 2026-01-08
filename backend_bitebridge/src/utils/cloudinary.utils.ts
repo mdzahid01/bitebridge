@@ -1,9 +1,10 @@
 import cloudinary from "../config/cloudinary.js";
+import "multer";
 
 const deleteImageFromCloudinary = async (imageparam: Express.Multer.File | string) => {
     try {
         let public_id = ""
-        if(typeof imageparam==='object' && imageparam.filename){
+        if(typeof imageparam==='object' && imageparam !== null && 'filename' in imageparam){
             public_id = imageparam.filename
         }
         else if(typeof imageparam === 'string'){

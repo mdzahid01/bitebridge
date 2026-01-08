@@ -49,7 +49,7 @@ const menuItemSchema = new Schema<iMenuItem>({
 
 menuItemSchema.virtual('fullImageUrl').get(function () {
     if (this.imageUrl) {
-        return `${process.env.BACKEND_URL}/media/menuItems/${this.imageUrl}`;
+        return this.imageUrl;
     }
 });
 
