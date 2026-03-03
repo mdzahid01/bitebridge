@@ -233,13 +233,13 @@ const VendorMenu = () => {
                                         <div className="flex justify-between items-center mt-auto">
                                             <span className="text-lg font-bold text-gray-900">₹{item.price}</span>
 
-                                            {vendor.isOpen ? (
+                                            {vendor.isOpen && item.availability ? (
                                                 // Logic: Agar Cart mein hai to Counter, nahi to ADD button
                                                 cartItem ? (
                                                     <div className="flex items-center bg-white border border-orange-200 rounded-lg shadow-sm">
                                                         {/* Minus Button */}
                                                         <button
-                                                            onClick={() => {console.log("clicked");decreaseQuantity(item._id)}}
+                                                            onClick={() => {decreaseQuantity(item._id)}}
                                                             className="px-3 py-1 text-orange-600 hover:bg-orange-50 active:bg-orange-100 transition rounded-l-lg"
                                                         >
                                                             -

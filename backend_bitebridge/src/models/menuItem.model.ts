@@ -7,6 +7,7 @@ export interface iMenuItem extends Document {
     name: string,
     price: number,
     availability: boolean,
+    isveg:boolean,
     imageUrl?: string,
 }
 
@@ -34,6 +35,11 @@ const menuItemSchema = new Schema<iMenuItem>({
     availability: {
         type: Boolean,
         default: true,
+    },
+    isveg:{
+        type: Boolean,
+        default:true,
+        // index:true
     },
     imageUrl: {
         type: String,

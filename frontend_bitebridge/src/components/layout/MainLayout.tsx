@@ -9,6 +9,7 @@ const MainLayout = () => {
   const location = useLocation()
   const notAllowedUsers = ['vendorOwner', 'vendorStaff', 'superAdmin']
   const isRestrictedUser = authUser?.role && notAllowedUsers.includes(authUser.role);
+  // agar checkout page me hi hain to checkout bar dikhane ki zarurat hi nahi
   const isCheckoutPage = location.pathname === '/checkout';
   console.log(location)
   return (

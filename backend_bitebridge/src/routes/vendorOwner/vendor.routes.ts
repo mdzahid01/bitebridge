@@ -1,6 +1,6 @@
 import { Router } from "express";
 import protectedRoute from "../../middlewares/auth.middleware.js";
-import checkVendorOwner, { checkVendorExist } from "../../middlewares/vendor.middleware.js";
+import checkVendorOwner, { checkVendorExist, checkVendorMember } from "../../middlewares/vendor.middleware.js";
 import { uploadVendor, uploadAvatar,uploadMenuItem, multerErrorHandler } from "../../middlewares/multer.middleware.js";
 import {
     createVendor,
@@ -30,6 +30,7 @@ import {
     deleteManyMenuItems,
 
 } from "../../controllers/vendor.controller.js";
+import { acceptOrder, completeOrder, getOrderDetails, getVendorPastOrders, getVendorsOpenOrders, getVendorsRequestedOrders, rejectOrder, updateOrderItemStatus } from "../../controllers/order.controller.js";
 // import { compressImage } from "../../middlewares/compressImage.middleware.js";
 const vendorRouter = Router()
 
@@ -38,6 +39,7 @@ vendorRouter.post('/create-vendor',
     protectedRoute, 
     checkVendorOwner, 
     uploadVendor.single('shopImage'),
+    multerErrorHandler,
     createVendor
 )
 
@@ -54,14 +56,15 @@ vendorRouter.delete('/delete-categories', protectedRoute, checkVendorOwner, chec
 vendorRouter.post('/toggle-shop', protectedRoute, checkVendorOwner, checkVendorExist, toggleShopStatus)
 
 //employee management
-vendorRouter.post('/add-employee', protectedRoute, checkVendorOwner, checkVendorExist, uploadAvatar.single('profileImage'), addEmployee)
-vendorRouter.put('/update-employee/:id', protectedRoute, checkVendorOwner, checkVendorExist, uploadAvatar.single('profileImage'), updateEmployee)
+vendorRouter.post('/add-employee', protectedRoute, checkVendorOwner, checkVendorExist, uploadAvatar.single('profileImage'),multerErrorHandler, addEmployee)
+vendorRouter.put('/update-employee/:id', protectedRoute, checkVendorOwner, checkVendorExist, uploadAvatar.single('profileImage'),multerErrorHandler, updateEmployee)
 vendorRouter.delete('/delete-employee/:id', protectedRoute, checkVendorOwner, checkVendorExist, deleteEmployee)
 vendorRouter.delete('/delete-employees/', protectedRoute, checkVendorOwner, checkVendorExist, deleteManyEmployees)
 vendorRouter.get('/get-all-employees', protectedRoute, checkVendorOwner, checkVendorExist, getAllEmployees)
 vendorRouter.get('/get-employees/:id', protectedRoute, checkVendorOwner, checkVendorExist, getEmployee)
 
 
+// --------------------menu order( for vendorMembers) related routes starts from here
 vendorRouter.post('/add-menu-item',
     protectedRoute,
     checkVendorOwner,
@@ -105,5 +108,59 @@ vendorRouter.put('/update-menu-item/:id',
     multerErrorHandler,
     // compressImage,
     updateMenuItem,
+)
+
+// --------------------order( for vendorMembers) related routes starts from here
+vendorRouter.get('/open-orders',
+    protectedRoute,
+    checkVendorExist,
+    checkVendorMember,
+    getVendorsOpenOrders
+)
+vendorRouter.get('/new-orders',
+    protectedRoute,
+    checkVendorExist,
+    checkVendorMember,
+    getVendorsRequestedOrders
+)
+
+vendorRouter.patch('/accept-order',
+    protectedRoute,
+    checkVendorExist,
+    checkVendorMember,
+    acceptOrder,
+)
+vendorRouter.patch('/reject-order',
+    protectedRoute,
+    checkVendorExist,
+    checkVendorMember,
+    rejectOrder,
+)
+
+vendorRouter.patch('/:orderId/complete',
+    protectedRoute,
+    checkVendorExist,
+    checkVendorMember,
+    completeOrder
+)
+
+vendorRouter.patch('/:orderId/items/:iId',
+    protectedRoute,
+    checkVendorExist,
+    checkVendorMember,
+    updateOrderItemStatus
+)
+
+vendorRouter.get('/order/:orderId',
+    protectedRoute,
+    checkVendorExist,
+    checkVendorMember,
+    getOrderDetails
+)
+vendorRouter.get('/previous-orders',
+    protectedRoute,
+    checkVendorExist,
+    checkVendorMember,
+    getVendorPastOrders
 )
 export default vendorRouter

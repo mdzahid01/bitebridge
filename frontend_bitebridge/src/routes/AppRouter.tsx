@@ -13,6 +13,10 @@ import StaffManagementPage from "../pages/vendor/StaffManagementPage";
 import MenuItemManagementPage from "../pages/vendor/MenuItemManagementPage";
 import MainLayout from "../components/layout/MainLayout";
 import VendorMenu from "../pages/customer/VendorMenu";
+import NewOrdersPage from "../pages/vendor/NewOrdersPage";
+import LiveOrdersPage from "../pages/vendor/LiveOrdersPage";
+import PreviousOrdersPage from "../pages/vendor/PreviousOrderPage";
+import MyOrdersPage from "../pages/customer/MyOrdersPage";
 
 const router = createBrowserRouter([
     {
@@ -27,7 +31,7 @@ const router = createBrowserRouter([
 
             {
                 path: '/menu/:slug',
-                element:(
+                element: (
                     <GuestOrCustomerRoutes>
                         <VendorMenu />
                     </GuestOrCustomerRoutes>
@@ -35,9 +39,17 @@ const router = createBrowserRouter([
             },
             {
                 path: '/checkout',
-                element:(
+                element: (
                     <GuestOrCustomerRoutes>
                         <CheckoutPage />
+                    </GuestOrCustomerRoutes>
+                )
+            },
+            {
+                path: '/my-orders',
+                element: (
+                    <GuestOrCustomerRoutes>
+                        <MyOrdersPage />
                     </GuestOrCustomerRoutes>
                 )
             },
@@ -66,7 +78,7 @@ const router = createBrowserRouter([
                         <CategoryManagementPage />
                     </ProtectedRoute>
                 )
-            },       
+            },
             {
                 path: '/staff-management',
                 element: (
@@ -82,7 +94,34 @@ const router = createBrowserRouter([
                         <MenuItemManagementPage />
                     </ProtectedRoute>
                 )
-            },   
+            },
+            {
+                path: '/new-orders',
+                element: (
+                    // Ye page Owner aur Staff dono dekh sakte hain
+                    <ProtectedRoute allowedRoles={["vendorOwner", "vendorStaff"]}>
+                        <NewOrdersPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: '/live-orders',
+                element: (
+                    // Ye page Owner aur Staff dono dekh sakte hain
+                    <ProtectedRoute allowedRoles={["vendorOwner", "vendorStaff"]}>
+                        <LiveOrdersPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: '/previous-orders',
+                element: (
+                    // Ye page Owner aur Staff dono dekh sakte hain
+                    <ProtectedRoute allowedRoles={["vendorOwner", "vendorStaff"]}>
+                        <PreviousOrdersPage />
+                    </ProtectedRoute>
+                )
+            }
         ]
     },
 

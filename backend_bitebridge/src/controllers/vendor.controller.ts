@@ -820,9 +820,12 @@ const addMenuItem = async (req: Request, res: Response) => {
     const menuItemImage = req.file
     try {
         const vendorId = req.user?.vendorId
-        const { name, category, price } = req.body
+        const { name, category, price ,isveg, availability} = req.body
+        
+        const isVegBoolean = isveg ==='true'
+        const isAvailableBoolean = availability === 'true'
 
-        if (!name || !name.trim() || !category || price === undefined || price === '') {
+        if (!name || !name.trim() || !category || price === undefined || price === '' || isveg=== undefined) {
             if (menuItemImage) await deleteImageFromCloudinary(menuItemImage);
             return res.status(400).json({
                 message: "All fields (Name, Category, Price) are required"
@@ -854,6 +857,8 @@ const addMenuItem = async (req: Request, res: Response) => {
             vendorId: vendorId,
             categoryId: category,
             price: numPrice,
+            isveg: isVegBoolean,
+            availability: isAvailableBoolean,
             imageUrl: menuItemImage ? menuItemImage.path : null
         })
 
@@ -938,7 +943,7 @@ const updateMenuItem = async (req: Request, res: Response) => {
 
     try {
         const vendorId = req.user?.vendorId;
-        const { name, price, category, availability } = req.body;
+        const { name, price, category, availability,isveg } = req.body;
 
         // 1. Basic ID Check
         if (!id) {
@@ -1000,6 +1005,10 @@ const updateMenuItem = async (req: Request, res: Response) => {
         // Availability handle karo (Boolean conversion zaroori hai FormData ke liye)
         if (availability !== undefined) {
             menuItem.availability = availability === 'true'; 
+        }
+
+        if (isveg !== undefined) {
+            menuItem.isveg = isveg === 'true'; 
         }
 
         const updatedItem = await menuItem.save();

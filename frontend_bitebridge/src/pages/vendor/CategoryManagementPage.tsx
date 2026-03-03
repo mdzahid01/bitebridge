@@ -15,9 +15,11 @@ import {
 } from 'lucide-react';
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
+import usePageTitle from "../../hooks/usePageTitle";
 
 
 function CategoryManagementPage() {
+    usePageTitle("Category Management")
     // const [allCategories, setAllCategories] = useState<iCategory[] | null>(null);
     const [allCategories, setAllCategories] = useState<iCategory[]>([]);
     const [isModalOpen,setIsModalOpen] = useState<boolean>(false)

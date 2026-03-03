@@ -3,8 +3,10 @@ import axiosClient from '../../services/axiosClient' // Apna path check kar lena
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { Plus, X, ArrowRight, Layers, Loader2, AlertCircle } from 'lucide-react'
+import usePageTitle from '../../hooks/usePageTitle'
 
 function CreateCategory() {
+    usePageTitle("Category Management")
     const [currentcategory, setCurrentCategory] = useState<string>("")
     const [categories, setCategories] = useState<string[]>([])
     const [error, setError] = useState<string | null>(null)

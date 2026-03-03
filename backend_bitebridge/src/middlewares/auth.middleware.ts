@@ -12,7 +12,13 @@ declare global{
 
 const protectedRoute = async (req: Request, res: Response, next: NextFunction)=>{
     try {
-        const token = req.cookies.jwt;
+        let token;
+        if (req.cookies?.jwt) {
+            token = req.cookies.jwt;
+        }else if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+            // "Bearer <token>" me se sirf token nikalo
+            token = req.headers.authorization.split(" ")[1]; 
+        }
         if (!token) {
             return res.status(401).json({ message: 'Unauthorized - No Token Provided' });
         }

@@ -1,28 +1,14 @@
 import mongoose,{model,Schema,Document} from "mongoose";
 
 export interface iOrderItem extends Document {
+    _id: mongoose.Types.ObjectId,
     itemId: mongoose.Schema.Types.ObjectId,
     name: string,
     qty: number,
     price: number,
-    status: "pending" | "served", 
+    status: "pending" | "ready" | "cancelled" | "delivered" ,
 }
 
-export interface iOrder extends Document{
-    vendorId: mongoose.Schema.Types.ObjectId,
-    customerId?: mongoose.Schema.Types.ObjectId | null,
-    tokenNo: string,
-    customerDetail: {
-        name: string,
-        phone:string,
-    },
-    orderStatus: "pending" | "completed"
-    paymentMethod: 'upi' | 'cash',
-    transactionId?: string | null,
-    totalAmount: number,
-    items: iOrderItem[],
-    createdBy?: mongoose.Schema.Types.ObjectId | null,
-}
 
 const orderItemSchema = new Schema<iOrderItem>({
     itemId: {
@@ -46,10 +32,29 @@ const orderItemSchema = new Schema<iOrderItem>({
     },
     status: {
         type: String,
-        enum: ['pending', 'served'],
+        enum: ['pending', 'ready', 'cancelled',"delivered"],
         default: 'pending',
-    },  
+    },
 })
+
+
+export interface iOrder extends Document{
+    vendorId: mongoose.Schema.Types.ObjectId,
+    customerId?: mongoose.Schema.Types.ObjectId | null,
+    tokenNo: string,
+    customerDetail: {
+        name: string,
+        phone:string,
+    },
+    orderStatus: "created" |"preparing" | "ready" | "completed" | "cancelled",
+    totalAmount: number,
+    items: iOrderItem[],
+    createdAt: Date; // Timestamps ke liye
+    updatedAt: Date;
+    createdBy?: mongoose.Schema.Types.ObjectId | null,
+    rejectReason?: string,
+}
+
 
 const orderSchema = new Schema <iOrder>({
     vendorId: {
@@ -70,23 +75,18 @@ const orderSchema = new Schema <iOrder>({
     ,
     orderStatus:{
         type: String,
-        enum: ["pending", 'completed'],
-        default: "pending",
+        enum: ["created","preparing", "ready",'completed',"cancelled"],
+        default: "created",
         index: true
+    },
+    rejectReason: {
+        type: String,
+        default: "",
     }
     ,
      tokenNo: {
         type: String,
         required: true,
-    },
-    paymentMethod: {
-        type: String,
-        enum: ['upi', 'cash', 'card'],
-        required: true,
-    },
-    transactionId: {
-      type: String,
-      default: null,
     },
     totalAmount: {
         type: Number,

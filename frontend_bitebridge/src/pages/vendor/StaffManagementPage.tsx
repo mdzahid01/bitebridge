@@ -17,6 +17,7 @@ import {
     Users
 } from "lucide-react";
 import toast from "react-hot-toast";
+import usePageTitle from "../../hooks/usePageTitle";
 
 interface staffFormState {
     id: string | null,
@@ -27,7 +28,8 @@ interface staffFormState {
 }
 
 function StaffManagementPage() {
-    // --- STATE (Logic Unchanged) ---
+    usePageTitle("Staff Management")
+    // --- STATES ---
     const [allStaffs, setAllStaffs] = useState<IUser[] | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
     const [editModal, setEditModal] = useState<boolean>(false)
@@ -44,7 +46,7 @@ function StaffManagementPage() {
 
     const [selectDelete, setSelectDelete] = useState<string[]>([])
     const [searchTerm,setSearchTerm] = useState<string>('')
-    // --- API CALLS (Logic Unchanged) ---
+  
     const fetchAllStaffs = async () => {
         try {
             const response = await axiosClient.get('vendors/get-all-employees')
@@ -61,7 +63,7 @@ function StaffManagementPage() {
         fetchAllStaffs();
     }, [])
 
-    // --- HANDLERS (Logic Unchanged) ---
+    // --- HANDLERS ---
     const closeModal = () => {
         setIsModalOpen(false)
         setError(null)

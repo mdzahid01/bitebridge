@@ -20,7 +20,7 @@ function App() {
         const response = await authApi.getProfile();
         if (response.data.user) {
           setAuthUser(response.data.user);
-          console.log(response.data.user);
+          // console.log(response.data.user);
         }
       } catch (error: any) {
         console.error("Error details:", error); // Debugging ke liye
