@@ -28,6 +28,7 @@ import {
     updateMenuItem,
     deleteMenuItem,
     deleteManyMenuItems,
+    getShopStatus,
 
 } from "../../controllers/vendor.controller.js";
 import { acceptOrder, completeOrder, getOrderDetails, getVendorPastOrders, getVendorsOpenOrders, getVendorsRequestedOrders, rejectOrder, updateOrderItemStatus } from "../../controllers/order.controller.js";
@@ -54,6 +55,7 @@ vendorRouter.delete('/delete-categories', protectedRoute, checkVendorOwner, chec
 
 // shop : open/close 
 vendorRouter.patch('/toggle-shop', protectedRoute, checkVendorOwner, checkVendorExist, toggleShopStatus)
+vendorRouter.get('/get-shop-status', protectedRoute, checkVendorOwner, checkVendorExist, getShopStatus)
 
 //employee management
 vendorRouter.post('/add-employee', protectedRoute, checkVendorOwner, checkVendorExist, uploadAvatar.single('profileImage'),multerErrorHandler, addEmployee)

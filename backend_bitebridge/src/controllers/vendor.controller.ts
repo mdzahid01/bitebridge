@@ -134,6 +134,41 @@ const createVendor = async (req: Request, res: Response) => {
     }
 };
 
+
+export const getShopStatus = async (req: Request, res: Response) => {
+    try {
+        const vendorId = req.user?.vendorId; 
+
+        if (!vendorId) {
+            return res.status(400).json({
+                message: "Vendor ID not found for this user",
+            });
+        }
+
+        // Sirf 'isOpen' field fetch kar rahe hain taaki database query fast ho (.select ka jadoo)
+        const vendor = await Vendor.findById(vendorId).select("isOpen");
+
+        if (!vendor) {
+            return res.status(404).json({
+                message: "Vendor Not Found",
+            });
+        }
+
+        return res.status(200).json({
+            message: "Shop status fetched successfully",
+            isOpen: vendor.isOpen, // True ya False
+        });
+
+    } catch (err: any) {
+        console.error("Error fetching shop status: ", err);
+
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: err.message,
+        });
+    }
+};
+
 const toggleShopStatus = async (req: Request, res: Response) => {
     try {
         const { isOpen } = req.body;

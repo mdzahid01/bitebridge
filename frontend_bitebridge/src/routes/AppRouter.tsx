@@ -19,6 +19,7 @@ import PreviousOrdersPage from "../pages/vendor/PreviousOrderPage";
 import MyOrdersPage from "../pages/customer/MyOrdersPage";
 import DashboardLayout from "../components/layout/DashboardLayout"
 import DashboardHomePage from "../pages/vendor/DashboardHomePage";
+import PageUnderConstruction from "../pages/PageUnderConstruction";
 
 const router = createBrowserRouter([
     {
@@ -111,6 +112,14 @@ const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute allowedRoles={["vendorOwner", "vendorStaff"]}>
                         <NewOrdersPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'create-orders',
+                element: (
+                    <ProtectedRoute allowedRoles={["vendorOwner", "vendorStaff"]}>
+                        <PageUnderConstruction />
                     </ProtectedRoute>
                 )
             },

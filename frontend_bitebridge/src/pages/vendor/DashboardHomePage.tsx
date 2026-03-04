@@ -24,7 +24,7 @@ const DashboardHomePage = () => {
         const fetchShopStatus = async () => {
             try {
                 // Apne backend ke hisaab se route adjust kar lena (e.g., /vendor/profile ya /vendor/status)
-                const response = await axiosClient.get('/vendor/get-vendor-status'); 
+                const response = await axiosClient.get('/vendors/get-shop-status'); 
                 setIsShopOpen(response.data.isOpen); 
             } catch (error) {
                 console.error("Failed to fetch shop status", error);
@@ -43,9 +43,8 @@ const DashboardHomePage = () => {
         const newStatus = !isShopOpen; // Current status ka ulta (True -> False ya False -> True)
 
         try {
-            // NOTE: Apne backend route path ke hisaab se '/vendor/toggle-status' ko change kar lena 
-            // (Agar tune POST use kiya hai toh axiosClient.post kar dena)
-            const response = await axiosClient.put('/vendor/toggle-status', {
+
+            const response = await axiosClient.patch('/vendors/toggle-shop', {
                 isOpen: newStatus
             });
 
@@ -87,7 +86,8 @@ const DashboardHomePage = () => {
             </div>
 
             {/* --- Main Shop Status Card --- */}
-            <div className={`p-6 md:p-8 rounded-2xl shadow-sm border transition-colors flex flex-col md:flex-row items-center justify-between gap-6 ${
+            {authUser?.role==="vendorOwner" &&(
+                 <div className={`p-6 md:p-8 rounded-2xl shadow-sm border transition-colors flex flex-col md:flex-row items-center justify-between gap-6 ${
                 isShopOpen ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
             }`}>
                 <div className="flex items-center gap-4 text-center md:text-left">
@@ -113,18 +113,20 @@ const DashboardHomePage = () => {
                     <span className="sr-only">Toggle Shop Status</span>
                     {/* The Circle inside Toggle */}
                     <span
-                        className={`inline-block h-8 w-8 transform rounded-full bg-white shadow-md transition-transform flex items-center justify-center ${
+                        className={` h-8 w-8 transform rounded-full bg-white shadow-md transition-transform flex items-center justify-center ${
                             isShopOpen ? 'translate-x-11' : 'translate-x-1'
                         }`}
                     >
                         {loading ? (
                             <Loader2 size={16} className="animate-spin text-gray-400" />
                         ) : (
-                            <Power size={16} className={isShopOpen ? "text-green-500" : "text-gray-400"} />
+                            <Power size={16} className={`${isShopOpen ? "text-green-500" : "text-gray-400"}` } />
                         )}
                     </span>
                 </button>
             </div>
+            )}
+           
 
             {/* --- Dummy Quick Stats (Taki dashboard premium lage) --- */}
             <h3 className="text-lg font-bold text-gray-700 mt-8 mb-4">Quick Insights (Today)</h3>

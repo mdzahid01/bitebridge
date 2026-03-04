@@ -58,7 +58,7 @@ const DashboardLayout = () => {
                     <NavLink to="/dashboard/new-orders" className={getNavLinkClass} onClick={() => setIsSidebarOpen(false)}>
                         <ShoppingBag size={20} /> New Orders
                     </NavLink>
-                    <NavLink to="/dashboard/create-order" className={getNavLinkClass} onClick={() => setIsSidebarOpen(false)}>
+                    <NavLink to="/dashboard/create-orders" className={getNavLinkClass} onClick={() => setIsSidebarOpen(false)}>
                         <PlusCircle size={20} /> Create Order
                     </NavLink>
                     <NavLink to="/dashboard/previous-orders" className={getNavLinkClass} onClick={() => setIsSidebarOpen(false)}>
