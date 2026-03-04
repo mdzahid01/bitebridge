@@ -1,7 +1,8 @@
 import { Outlet, useLocation } from 'react-router-dom'
-import Navbar from './NavBar'
-import FloatingCart from '../cart/FloatingCart'
 import { useAuth } from '../../context/AuthContext'
+import FloatingCart from '../cart/FloatingCart'
+import Footer from './Footer'
+import Navbar from './NavBar'
 
 const MainLayout = () => {
   const {authUser} = useAuth()
@@ -20,7 +21,7 @@ const MainLayout = () => {
             
         </main>
         {/* {!isRestrictedUser && <Footer />} */}
-        {/* <Footer/> */}
+        <Footer/>
     </div>
   )
 }
