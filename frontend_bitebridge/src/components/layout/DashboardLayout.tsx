@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
-    LayoutDashboard, 
     Tags, 
     MenuSquare, 
     Users, 
@@ -11,7 +10,6 @@ import {
     Activity, 
     History,
     Menu,
-    X,
     House
 } from 'lucide-react';
 

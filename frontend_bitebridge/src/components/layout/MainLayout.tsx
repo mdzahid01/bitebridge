@@ -1,6 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import Navbar from './NavBar'
-import Footer from './Footer'
 import FloatingCart from '../cart/FloatingCart'
 import { useAuth } from '../../context/AuthContext'
 
