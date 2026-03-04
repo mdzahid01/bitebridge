@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Phone, User, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Phone, User, ShoppingBag } from "lucide-react";
 import toast from "react-hot-toast";
 import axiosClient from "../../services/axiosClient";
 

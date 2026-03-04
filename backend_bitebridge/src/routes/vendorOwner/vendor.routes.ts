@@ -53,7 +53,7 @@ vendorRouter.delete('/delete-category/:id', protectedRoute, checkVendorOwner, ch
 vendorRouter.delete('/delete-categories', protectedRoute, checkVendorOwner, checkVendorExist, deleteManyCategories)
 
 // shop : open/close 
-vendorRouter.post('/toggle-shop', protectedRoute, checkVendorOwner, checkVendorExist, toggleShopStatus)
+vendorRouter.patch('/toggle-shop', protectedRoute, checkVendorOwner, checkVendorExist, toggleShopStatus)
 
 //employee management
 vendorRouter.post('/add-employee', protectedRoute, checkVendorOwner, checkVendorExist, uploadAvatar.single('profileImage'),multerErrorHandler, addEmployee)

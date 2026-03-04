@@ -43,16 +43,16 @@ const MyOrdersPage = () => {
                 // 🟢 LOGGED-IN CUSTOMER LOGIC
                 // Apne backend route ke hisaab se URL adjust kar lena
                 const response = await axiosClient.get('/customer-open-orders'); 
+                console.log(response)
                 setOrders(response.data.orders || []);
             } else {
                 // 🟡 GUEST CUSTOMER LOGIC
-                const guestOrderIds = JSON.parse(localStorage.getItem('guestOrders') || '[]');
+                const orderIds = JSON.parse(localStorage.getItem('guestOrders') || '[]');
                 
-                if (guestOrderIds.length > 0) {
+                if (orderIds.length > 0) {
                     // Apne backend route ke hisaab se URL adjust kar lena
-                    const response = await axiosClient.post('/guest-open-orders', { 
-                        orderIds: guestOrderIds 
-                    });
+                    const response = await axiosClient.get('/guest-open-orders', orderIds);
+                    console.log(response)
                     setOrders(response.data.orders || []);
                 } else {
                     setOrders([]); // Koi guest order nahi hai

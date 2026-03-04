@@ -17,6 +17,8 @@ import NewOrdersPage from "../pages/vendor/NewOrdersPage";
 import LiveOrdersPage from "../pages/vendor/LiveOrdersPage";
 import PreviousOrdersPage from "../pages/vendor/PreviousOrderPage";
 import MyOrdersPage from "../pages/customer/MyOrdersPage";
+import DashboardLayout from "../components/layout/DashboardLayout"
+import DashboardHomePage from "../pages/vendor/DashboardHomePage";
 
 const router = createBrowserRouter([
     {
@@ -30,7 +32,7 @@ const router = createBrowserRouter([
             },
 
             {
-                path: '/menu/:slug',
+                path: 'menu/:slug',
                 element: (
                     <GuestOrCustomerRoutes>
                         <VendorMenu />
@@ -38,7 +40,7 @@ const router = createBrowserRouter([
                 )
             },
             {
-                path: '/checkout',
+                path: 'checkout',
                 element: (
                     <GuestOrCustomerRoutes>
                         <CheckoutPage />
@@ -46,25 +48,34 @@ const router = createBrowserRouter([
                 )
             },
             {
-                path: '/my-orders',
+                path: 'my-orders',
                 element: (
                     <GuestOrCustomerRoutes>
                         <MyOrdersPage />
                     </GuestOrCustomerRoutes>
                 )
-            },
+            },  
+        ]
+    },
 
-            // vendorOwner wale routes
+    {   
+        path: "/dashboard", // 👉 Parent path set kar diya
+        element: <DashboardLayout/>,
+        children: [
             {
-                path: '/create-vendor',
+                index: true, // 👉 Ye default bacha hai. Ye direct "/dashboard" pe khulega
+                element: <DashboardHomePage /> 
+            },
+            {
+                path: 'create-vendor', // 👉 Dhyan de: Aage ka '/' hata diya hai
                 element: (
                     <ProtectedRoute allowedRoles={["vendorOwner"]}>
-                        <CreateVendor />
+                        <CreateVendor /> 
                     </ProtectedRoute>
                 )
             },
             {
-                path: '/create-category',
+                path: 'create-category', // 👉 Yahan bhi '/' nahi hai
                 element: (
                     <ProtectedRoute allowedRoles={["vendorOwner"]}>
                         <CreateCategory />
@@ -72,7 +83,7 @@ const router = createBrowserRouter([
                 )
             },
             {
-                path: '/category-management',
+                path: 'category-management',
                 element: (
                     <ProtectedRoute allowedRoles={["vendorOwner"]}>
                         <CategoryManagementPage />
@@ -80,7 +91,7 @@ const router = createBrowserRouter([
                 )
             },
             {
-                path: '/staff-management',
+                path: 'staff-management',
                 element: (
                     <ProtectedRoute allowedRoles={["vendorOwner"]}>
                         <StaffManagementPage />
@@ -88,7 +99,7 @@ const router = createBrowserRouter([
                 )
             },
             {
-                path: '/menu-management',
+                path: 'menu-management',
                 element: (
                     <ProtectedRoute allowedRoles={["vendorOwner"]}>
                         <MenuItemManagementPage />
@@ -96,27 +107,24 @@ const router = createBrowserRouter([
                 )
             },
             {
-                path: '/new-orders',
+                path: 'new-orders',
                 element: (
-                    // Ye page Owner aur Staff dono dekh sakte hain
                     <ProtectedRoute allowedRoles={["vendorOwner", "vendorStaff"]}>
                         <NewOrdersPage />
                     </ProtectedRoute>
                 )
             },
             {
-                path: '/live-orders',
+                path: 'live-orders',
                 element: (
-                    // Ye page Owner aur Staff dono dekh sakte hain
                     <ProtectedRoute allowedRoles={["vendorOwner", "vendorStaff"]}>
                         <LiveOrdersPage />
                     </ProtectedRoute>
                 )
             },
             {
-                path: '/previous-orders',
+                path: 'previous-orders',
                 element: (
-                    // Ye page Owner aur Staff dono dekh sakte hain
                     <ProtectedRoute allowedRoles={["vendorOwner", "vendorStaff"]}>
                         <PreviousOrdersPage />
                     </ProtectedRoute>

@@ -108,11 +108,11 @@ const placeOrder = async (req: Request, res: Response) => {
     }
 };
 
-const getGuestOpenOrders = async(req: Request, res:Response) => {
+const getGuestOpenOrders = async (req: Request, res: Response) => {
     try {
-        const {orderIds} = req.body //arrays of orderId
+        const { orderIds } = req.body //arrays of orderId
 
-        if(!orderIds || !Array.isArray(orderIds) || orderIds.length === 0){
+        if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
             return res.status(200).json({
                 messeage: "NO order Ids",
                 orders: []
@@ -120,10 +120,10 @@ const getGuestOpenOrders = async(req: Request, res:Response) => {
         }
 
         const orders = await Order.find(
-            {_id:{$in: orderIds},orderStatus:{$in: ["created","preparing","ready"]}}
-        ).sort({createdAt:-1});
+            { _id: { $in: orderIds }, orderStatus: { $in: ["created", "preparing", "ready"] } }
+        ).sort({ createdAt: -1 });
 
-        if(!orders || orders.length===0){
+        if (!orders || orders.length === 0) {
             return res.status(200).json({
                 messeage: "NO Open Orders Yet",
                 orders,
@@ -135,7 +135,7 @@ const getGuestOpenOrders = async(req: Request, res:Response) => {
             orders: orders,
         })
 
-    } catch (error:any) {
+    } catch (error: any) {
         console.error("GetGuestOpenOrder Error:", error);
         return res.status(500).json({ message: "Order fetching failed", error: error.message });
     }
@@ -143,22 +143,67 @@ const getGuestOpenOrders = async(req: Request, res:Response) => {
 const getCustomerOpenOrders = async (req: Request, res: Response) => {
     try {
         const customerId = req.user?.id;
-    if(!customerId) return res.status(401).json({message: "Unauthorized"})
+        if (!customerId) return res.status(401).json({ message: "Unauthorized" })
 
-    const orders = await Order.find(
-        {customerId: customerId, orderStatus: {$in:["created","preparing","ready"]}}
-    ).sort({createdAt: -1});
+        const orders = await Order.find(
+            { customerId: customerId, orderStatus: { $in: ["created", "preparing", "ready"] } }
+        ).sort({ createdAt: -1 });
 
-    if(!orders || orders.length===0){
+        if (!orders || orders.length === 0) {
+            return res.status(200).json({
+                messeage: "NO Open Orders Yet",
+                orders,
+            })
+        }
         return res.status(200).json({
-            messeage: "NO Open Orders Yet",
-            orders,
-        })
-    }
-    return res.status(200).json({
             message: "Open Orders fetched",
             orders: orders,
         })
+    } catch (error: any) {
+        console.error("GetCustomerOpenOrder Error:", error);
+        return res.status(500).json({ message: "Order fetching failed", error: error.message });
+    }
+}
+
+const getCustomerPreviousOrder = async (req: Request, res: Response) => {
+    try {
+        const customerId = req.user?.id;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const search = req.query.search as string || ""; // NAYA: Search query
+
+        const skip = (page - 1) * limit;
+
+        // Base filter
+        const filter: any = {
+            customerId: customerId,
+            orderStatus: { $in: ["completed", "cancelled"] },
+        };
+        if (!customerId) return res.status(401).json({ message: "Unauthorized" })
+
+        const [orders, totalOrders] = await Promise.all([
+            Order.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+            Order.countDocuments(filter)
+        ]);
+
+        if (!orders || orders.length === 0) {
+            return res.status(200).json({
+                message: "No order Found",
+                orders: [],
+                totalOrders: 0,
+                totalPage: 0,
+                currentPage: page
+            });
+        }
+
+        return res.status(200).json({
+            message: "History fetched",
+            orders,
+            totalOrders,
+            hasMore: (skip + orders.length) < totalOrders,
+            totalPage: Math.ceil(totalOrders / limit),
+            currentPage: page
+        });
     } catch (error: any) {
         console.error("GetCustomerOpenOrder Error:", error);
         return res.status(500).json({ message: "Order fetching failed", error: error.message });
@@ -249,7 +294,7 @@ const updateOrderItemStatus = async (req: Request, res: Response) => {
             const isAllCancelled = order?.items.every(i => i.status === "cancelled")
             if (isAllCancelled) {
                 order.orderStatus = "cancelled"
-                order.rejectReason="all items were cancelled"
+                order.rejectReason = "all items were cancelled"
             }
             else {
                 order.orderStatus = "ready"
@@ -336,12 +381,12 @@ const getVendorsRequestedOrders = async (req: Request, res: Response) => {
 const getVendorPastOrders = async (req: Request, res: Response) => {
     try {
         const vendorId = req.user?.vendorId;
-        
+
         // query params
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const search = req.query.search as string || ""; // NAYA: Search query
-        
+
         const skip = (page - 1) * limit;
 
         // Base filter
@@ -357,7 +402,7 @@ const getVendorPastOrders = async (req: Request, res: Response) => {
                 { "customerDetail.phone": { $regex: search, $options: "i" } },
                 { tokenNo: { $regex: search, $options: "i" } }
             ];
-            
+
             // Pro Tip: Agar tum tokenNo DB me save nahi karte aur _id ka use karte ho, 
             // toh MongoDB id ko string me convert karke search karne ke liye ye use hota hai:
             // { $expr: { $regexMatch: { input: { $toString: "$_id" }, regex: search, options: "i" } } }
@@ -369,12 +414,12 @@ const getVendorPastOrders = async (req: Request, res: Response) => {
         ]);
 
         if (!orders || orders.length === 0) {
-            return res.status(200).json({ 
-                message: "No order Found", 
-                orders: [], 
-                totalOrders: 0, 
-                totalPage: 0, 
-                currentPage: page 
+            return res.status(200).json({
+                message: "No order Found",
+                orders: [],
+                totalOrders: 0,
+                totalPage: 0,
+                currentPage: page
             });
         }
 
@@ -415,9 +460,10 @@ const getOrderDetails = async (req: Request, res: Response) => {
 
 export {
     //customer
-    placeOrder, 
+    placeOrder,
     getGuestOpenOrders,
     getCustomerOpenOrders,
+    getCustomerPreviousOrder,
     //vendor
     acceptOrder,
     rejectOrder,

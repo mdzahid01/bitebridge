@@ -11,7 +11,7 @@ const MainLayout = () => {
   const isRestrictedUser = authUser?.role && notAllowedUsers.includes(authUser.role);
   // agar checkout page me hi hain to checkout bar dikhane ki zarurat hi nahi
   const isCheckoutPage = location.pathname === '/checkout';
-  console.log(location)
+  console.log("location: ", location)
   return (
     <div className="flex flex-col min-h-screen">
         <Navbar/>
@@ -20,7 +20,8 @@ const MainLayout = () => {
             {(!isRestrictedUser && !isCheckoutPage) && <FloatingCart />}
             
         </main>
-        <Footer/>
+        {/* {!isRestrictedUser && <Footer />} */}
+        {/* <Footer/> */}
     </div>
   )
 }
