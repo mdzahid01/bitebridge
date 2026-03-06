@@ -12,7 +12,7 @@ import QRScannerModal from "../components/common/QRScannerModal";
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState<boolean>(false);
 
   return (
     <div className="min-h-screen bg-white">
