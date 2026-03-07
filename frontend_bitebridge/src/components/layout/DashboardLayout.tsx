@@ -10,7 +10,8 @@ import {
     Activity, 
     History,
     Menu,
-    House
+    House,
+    Store
 } from 'lucide-react';
 
 const DashboardLayout = () => {
@@ -80,6 +81,26 @@ const DashboardLayout = () => {
                             <NavLink to="/dashboard/staff-management" className={getNavLinkClass} onClick={() => setIsSidebarOpen(false)}>
                                 <Users size={20} /> Staff Management
                             </NavLink>
+                            
+                            <div className="my-4 border-t border-gray-100"></div>
+                            <p className="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 mt-4">
+                                Vendor
+                            </p>
+                            <NavLink to="/dashboard/vendor-details" className={getNavLinkClass} onClick={() => setIsSidebarOpen(false)}>
+                                <Store size={20} /> Vendor Details
+                            </NavLink>
+                            {/* <NavLink to="/dashboard/menu-management" className={getNavLinkClass} onClick={() => setIsSidebarOpen(false)}>
+                                <MenuSquare size={20} /> Menu Items
+                            </NavLink>
+                            <NavLink to="/dashboard/staff-management" className={getNavLinkClass} onClick={() => setIsSidebarOpen(false)}>
+                                <Users size={20} /> Staff Management
+                            </NavLink>
+                            <NavLink to="/dashboard/menu-management" className={getNavLinkClass} onClick={() => setIsSidebarOpen(false)}>
+                                <MenuSquare size={20} /> Menu Items
+                            </NavLink>
+                            <NavLink to="/dashboard/staff-management" className={getNavLinkClass} onClick={() => setIsSidebarOpen(false)}>
+                                <Users size={20} /> Staff Management
+                            </NavLink> */}
                         </>
                     )}
                 </div>

@@ -31,7 +31,7 @@ interface IVendor {
     shopName: string;
     slug: string;
     address: string;
-    fullImageUrl?: string; // Virtual field
+    imageUrl?: string; // Virtual field
     isOpen: boolean;
     rating?: number; // Optional, agar backend se abhi nahi aa rha to
 }
@@ -133,7 +133,7 @@ const VendorMenu = () => {
             {/* --- HERO SECTION --- */}
             <div className="relative h-64 bg-gray-900">
                 <img
-                    src={vendor.fullImageUrl || "https://via.placeholder.com/800x400?text=Shop+Image"}
+                    src={vendor.imageUrl || "https://via.placeholder.com/800x400?text=Shop+Image"}
                     alt={vendor.shopName}
                     className="w-full h-full object-cover opacity-60"
                 />

@@ -29,6 +29,8 @@ import {
     deleteMenuItem,
     deleteManyMenuItems,
     getShopStatus,
+    getVendorDetails,
+    updateVendor,
 
 } from "../../controllers/vendor.controller.js";
 import { acceptOrder, completeOrder, getOrderDetails, getVendorPastOrders, getVendorsOpenOrders, getVendorsRequestedOrders, rejectOrder, updateOrderItemStatus } from "../../controllers/order.controller.js";
@@ -42,6 +44,21 @@ vendorRouter.post('/create-vendor',
     uploadVendor.single('shopImage'),
     multerErrorHandler,
     createVendor
+)
+
+// to get vendor details for update page
+vendorRouter.get('/get-vendor-details', 
+    protectedRoute,
+    checkVendorOwner, 
+    getVendorDetails,
+)
+// updateding vendor Details by vendorOwner
+vendorRouter.put('/update-vendor', 
+    protectedRoute, 
+    checkVendorOwner,
+    uploadVendor.single('shopImage'),
+    multerErrorHandler,
+    updateVendor,
 )
 
 //category management

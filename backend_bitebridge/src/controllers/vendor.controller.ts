@@ -134,8 +134,93 @@ const createVendor = async (req: Request, res: Response) => {
     }
 };
 
+const getVendorDetails = async (req: Request, res: Response) => {
+    try {
+        const vendorId = req.user?.vendorId;
+        
+        if (!vendorId) {
+            return res.status(400).json({
+                message: "Vendor ID not found for this user",
+            });
+        }
 
-export const getShopStatus = async (req: Request, res: Response) => {
+        
+        const shopDetails = await Vendor.findById(vendorId).lean();
+
+        if (!shopDetails) {
+            return res.status(404).json({
+                message: "Shop profile not found",
+            });
+        }
+
+        return res.status(200).json({
+            message: "Fetched shop details successfully",
+            shopDetails: shopDetails
+        });
+
+    } catch (error: any) {
+        console.log("error in getVendorDetails:", error);
+        return res.status(500).json({
+            message: "Internal server error",
+            error: error.message,
+        });
+    }
+};
+
+const updateVendor = async (req: Request,res: Response)=>{
+    const shopImage = req.file;
+    try {
+        const { shopName, address } = req.body;
+        const user = req.user;
+        const vendorId = user?.vendorId;
+        
+        const updateData: any = {}
+        if (shopName) updateData.shopName = shopName;
+        if (address) updateData.address = address;
+
+        if(shopImage) updateData.imageUrl = shopImage.path
+
+        if (Object.keys(updateData).length === 0) {
+            if (shopImage) {
+                await deleteImageFromCloudinary(shopImage);
+            }
+            return res.status(400).json({ message: "No valid fields provided for update." });
+        }
+
+        const updatedVendor = await Vendor.findOneAndUpdate(
+            {_id:vendorId,ownerId: user?._id},
+            {$set: updateData},
+            {new: true,runValidators: true}
+        );
+
+        // Agar kisi wajah se update fail ho gaya 
+        if (!updatedVendor) {
+            if (shopImage) {
+                await deleteImageFromCloudinary(shopImage); // Upload hui nayi image uda do
+            }
+            return res.status(404).json({ message: "Vendor profile not found or unauthorized." });
+        }
+
+        // SUCCESS
+        return res.status(200).json({
+            message: "Vendor profile updated successfully",
+            vendor: updatedVendor,
+        });
+
+    } catch (error: any) {
+        if (shopImage) {
+            await deleteImageFromCloudinary(shopImage);
+        }
+        console.log("error in updateVendor:", error);
+        res.status(500).json({
+            message: "Internal server error",
+            error: error.message,
+        });
+    }
+}
+
+
+ const getShopStatus = async (req: Request, res: Response) => {
     try {
         const vendorId = req.user?.vendorId; 
 
@@ -1164,7 +1249,11 @@ const deleteManyMenuItems = async (req: Request, res: Response) => {
 export {
     // shop
     createVendor, //done
+    updateVendor, //done
+    getVendorDetails, //done
     toggleShopStatus, //done
+    getShopStatus, //done
+
 
     // category
     createCategories, //done

@@ -20,6 +20,7 @@ import MyOrdersPage from "../pages/customer/MyOrdersPage";
 import DashboardLayout from "../components/layout/DashboardLayout"
 import DashboardHomePage from "../pages/vendor/DashboardHomePage";
 import PageUnderConstruction from "../pages/PageUnderConstruction";
+import UpdateVendorPage from "../pages/vendor/UpdateVendorPage";
 
 const router = createBrowserRouter([
     {
@@ -72,6 +73,14 @@ const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute allowedRoles={["vendorOwner"]}>
                         <CreateVendor /> 
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'vendor-details', // 👉 Dhyan de: Aage ka '/' hata diya hai
+                element: (
+                    <ProtectedRoute allowedRoles={["vendorOwner"]}>
+                        <UpdateVendorPage /> 
                     </ProtectedRoute>
                 )
             },
