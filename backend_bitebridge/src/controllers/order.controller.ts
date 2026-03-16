@@ -26,7 +26,8 @@ const placeOrder = async (req: Request, res: Response) => {
             customerDetails,
         } = req.body;
 
-        const customerId = req.user?._id
+        const customerId = req.user?.id
+        console.log("customer id: ", customerId)
         console.log("Body mil rahi hai ya nahi?", req.body);
 
         console.log("vendorID: ", vendorId)
@@ -142,7 +143,7 @@ const getGuestOpenOrders = async (req: Request, res: Response) => {
 }
 const getCustomerOpenOrders = async (req: Request, res: Response) => {
     try {
-        const customerId = req.user?.id;
+        const customerId = req.user?._id;
         if (!customerId) return res.status(401).json({ message: "Unauthorized" })
 
         const orders = await Order.find(
@@ -283,6 +284,18 @@ const updateOrderItemStatus = async (req: Request, res: Response) => {
 
         if (!item) return res.status(404).json({ message: "Item not found" })
 
+        // Check for state change involving cancellation to adjust totalAmount
+        const wasCancelled = item.status === "cancelled";
+        const willBeCancelled = status === "cancelled";
+
+        if (!wasCancelled && willBeCancelled) {
+            // Item is being cancelled: subtract its total price from order's totalAmount
+            order.totalAmount -= (item.price * item.qty);
+        } else if (wasCancelled && !willBeCancelled) {
+            // Item is being "un-cancelled": add its total price back to order's totalAmount
+            order.totalAmount += (item.price * item.qty);
+        }
+
         item.status = status;
 
         const isAnyPending = order.items.some(i => i.status === "pending")
@@ -305,7 +318,8 @@ const updateOrderItemStatus = async (req: Request, res: Response) => {
 
         return res.status(200).json({
             message: "Item status updated",
-            orderStatus: order?.orderStatus
+            orderStatus: order?.orderStatus,
+            totalAmount: order?.totalAmount
         });
 
     } catch (error: any) {

@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import axiosClient from '../../services/axiosClient';
 import { useAuth } from '../../context/AuthContext';
-import { 
-    Clock, 
-    ChefHat, 
-    CheckCircle, 
-    Package, 
+import {
+    Clock,
+    ChefHat,
+    CheckCircle,
+    Package,
     Loader2,
     Store,
-    ShoppingBag
+    ShoppingBag,
+    XCircle,
+    CheckCheck
 } from 'lucide-react';
 import usePageTitle from '../../hooks/usePageTitle';
 
@@ -18,7 +20,7 @@ interface IOrderItem {
     name: string;
     qty: number;
     price: number;
-    status: string;
+    status: string; // 'pending', 'preparing', 'ready'
 }
 
 interface IOrder {
@@ -30,29 +32,89 @@ interface IOrder {
     createdAt: string;
 }
 
+// --- Item Tracker Component ---
+// ✅ NAYA: orderStatus prop add kiya
+const ItemTracker = ({ status, orderStatus }: { status: string, orderStatus: string }) => {
+
+    if (status === 'cancelled' || status === 'rejected') {
+        return (
+            <div className="flex items-center justify-center gap-2 py-3 mt-4 bg-red-50 rounded-lg border border-red-200 text-red-600">
+                <XCircle size={18} />
+                <span className="font-bold text-sm">Item Cancelled</span>
+            </div>
+        );
+    }
+
+    const steps = [
+        { key: 'pending', label: 'Received', icon: <Clock size={16} /> },
+        { key: 'preparing', label: 'Cooking', icon: <ChefHat size={16} /> },
+        { key: 'ready', label: 'Ready', icon: <CheckCircle size={16} /> },
+        { key: 'delivered', label: 'Collected', icon: <CheckCheck size={16} /> },
+    ];
+
+    // 🔥 SMART LOGIC: Agar vendor ne order accept kar liya hai ('preparing'), 
+    // par item abhi bhi 'pending' hai, toh usko 'Cooking' ('preparing') maan lo.
+    let derivedStatus = status;
+    if (status === 'pending' && orderStatus === 'preparing') {
+        derivedStatus = 'preparing';
+    } else if (status === 'completed') {
+        derivedStatus = 'delivered'; // Safety fallback
+    }
+
+    let currentStepIndex = steps.findIndex(s => s.key === derivedStatus);
+    if (currentStepIndex === -1) currentStepIndex = 0;
+
+    return (
+        <div className="relative flex justify-between items-center w-full mt-4 mb-6 px-2">
+            <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -translate-y-1/2 z-0 rounded-full"></div>
+
+            <div
+                className="absolute top-1/2 left-0 h-1 bg-orange-400 -translate-y-1/2 z-0 transition-all duration-700 rounded-full"
+                style={{ width: `${(currentStepIndex / (steps.length - 1)) * 100}%` }}
+            ></div>
+
+            {steps.map((step, idx) => {
+                const isActive = idx <= currentStepIndex;
+                const isCurrent = idx === currentStepIndex;
+
+                let activeColor = 'bg-orange-500 text-white shadow-md ring-orange-200';
+                if (isActive && step.key === 'delivered') activeColor = 'bg-green-500 text-white shadow-md ring-green-200';
+
+                return (
+                    <div key={step.key} className="relative z-10 flex flex-col items-center">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 ${isActive ? activeColor : 'bg-white text-gray-300 border-2 border-gray-200'
+                            } ${isCurrent ? 'ring-4 scale-110' : ''}`}>
+                            {step.icon}
+                        </div>
+                        <span className={`text-[10px] font-bold absolute -bottom-5 w-16 text-center ${isActive ? (step.key === 'delivered' ? 'text-green-700' : 'text-orange-700') : 'text-gray-400'
+                            }`}>
+                            {step.label}
+                        </span>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
 const MyOrdersPage = () => {
     usePageTitle("Track My Order");
     const { authUser } = useAuth();
-    
+
     const [orders, setOrders] = useState<IOrder[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
 
     const fetchLiveOrders = async () => {
         try {
             if (authUser) {
-                // 🟢 LOGGED-IN CUSTOMER LOGIC
-                // Apne backend route ke hisaab se URL adjust kar lena
-                const response = await axiosClient.get('/customer-open-orders'); 
-                console.log(response)
+                const response = await axiosClient.get('/shop/customer-open-orders');
                 setOrders(response.data.orders || []);
             } else {
-                // 🟡 GUEST CUSTOMER LOGIC
+                // GUEST CUSTOMER LOGIC
                 const orderIds = JSON.parse(localStorage.getItem('guestOrders') || '[]');
-                
+
                 if (orderIds.length > 0) {
-                    // Apne backend route ke hisaab se URL adjust kar lena
-                    const response = await axiosClient.get('/guest-open-orders', orderIds);
-                    console.log(response)
+                    const response = await axiosClient.post('/shop/guest-open-orders', { orderIds });
                     setOrders(response.data.orders || []);
                 } else {
                     setOrders([]); // Koi guest order nahi hai
@@ -72,54 +134,6 @@ const MyOrdersPage = () => {
         return () => clearInterval(interval);
     }, [authUser]);
 
-    // --- Order Tracker Stepper Component ---
-    const OrderTracker = ({ status }: { status: string }) => {
-        // Map status to steps
-        const steps = [
-            { key: 'created', label: 'Order Placed', icon: <Clock size={20} /> },
-            { key: 'preparing', label: 'In Kitchen', icon: <ChefHat size={20} /> },
-            { key: 'ready', label: 'Ready!', icon: <CheckCircle size={20} /> },
-        ];
-
-        let currentStepIndex = steps.findIndex(s => s.key === status);
-        if (currentStepIndex === -1) currentStepIndex = 0; 
-
-        return (
-            <div className="relative flex justify-between items-center w-full mt-6 mb-8 px-4">
-                {/* Background Line */}
-                <div className="absolute top-1/2 left-0 w-full h-1.5 bg-gray-200 -translate-y-1/2 z-0 rounded-full"></div>
-                
-                {/* Active Line (Green) */}
-                <div 
-                    className="absolute top-1/2 left-0 h-1.5 bg-green-500 -translate-y-1/2 z-0 transition-all duration-700 rounded-full"
-                    style={{ width: `${(currentStepIndex / (steps.length - 1)) * 100}%` }}
-                ></div>
-
-                {/* Step Icons */}
-                {steps.map((step, idx) => {
-                    const isActive = idx <= currentStepIndex;
-                    const isCurrent = idx === currentStepIndex;
-                    return (
-                        <div key={step.key} className="relative z-10 flex flex-col items-center gap-2">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ${
-                                isActive 
-                                    ? 'bg-green-500 text-white shadow-lg shadow-green-200' 
-                                    : 'bg-white text-gray-300 border-4 border-gray-200'
-                            } ${isCurrent ? 'ring-4 ring-green-100 scale-110' : ''}`}>
-                                {step.icon}
-                            </div>
-                            <span className={`text-xs font-bold absolute -bottom-7 w-24 text-center ${
-                                isActive ? 'text-green-700' : 'text-gray-400'
-                            }`}>
-                                {step.label}
-                            </span>
-                        </div>
-                    );
-                })}
-            </div>
-        );
-    };
-
     if (loading && orders.length === 0) {
         return (
             <div className="min-h-[70vh] flex flex-col items-center justify-center bg-gray-50">
@@ -132,7 +146,7 @@ const MyOrdersPage = () => {
     return (
         <div className="min-h-screen bg-gray-50 pb-20 pt-6">
             <div className="max-w-3xl mx-auto px-4">
-                
+
                 <h1 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                     <Package className="text-orange-600" />
                     Live Order Tracking
@@ -148,8 +162,8 @@ const MyOrdersPage = () => {
                     <div className="space-y-8">
                         {orders.map(order => (
                             <div key={order._id} className="bg-white rounded-2xl shadow-md border-t-4 border-orange-500 p-5 overflow-hidden">
-                                
-                                {/* Top Info */}
+
+                                {/* Top Info: Token & Total */}
                                 <div className="flex justify-between items-start mb-6">
                                     <div>
                                         <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Token No.</p>
@@ -167,41 +181,49 @@ const MyOrdersPage = () => {
                                         </p>
                                     </div>
                                 </div>
-                                
-                                {/* Tracker Stepper Component */}
-                                <div className="py-6 bg-gray-50 rounded-xl border border-gray-100 mb-6">
-                                    <OrderTracker status={order.orderStatus} />
-                                </div>
 
-                                {/* Order Status Messages */}
-                                <div className={`p-4 rounded-xl border flex items-start gap-3 ${
-                                    order.orderStatus === 'ready' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-orange-50 border-orange-200 text-orange-800'
-                                }`}>
-                                    <Store size={24} className="shrink-0 mt-0.5" />
+                                {/* Order Main Status Message */}
+                                <div className="p-4 mb-6 rounded-xl border flex items-start gap-3 bg-gray-50 border-gray-200 text-gray-800">
+                                    <Store size={24} className="shrink-0 mt-0.5 text-orange-500" />
                                     <div>
                                         <p className="font-bold">
                                             {order.orderStatus === 'created' && "Waiting for vendor to accept..."}
-                                            {order.orderStatus === 'preparing' && "Your food is being prepared!"}
-                                            {order.orderStatus === 'ready' && "Yay! Your order is ready!"}
+                                            {order.orderStatus === 'preparing' && "Kitchen is preparing your items!"}
+                                            {order.orderStatus === 'ready' && "All items are ready to collect!"}
                                         </p>
-                                        <p className="text-sm mt-1 opacity-90">
-                                            {order.orderStatus === 'created' && "The kitchen will review your order shortly."}
-                                            {order.orderStatus === 'preparing' && "Our chefs are cooking your meal with love."}
-                                            {order.orderStatus === 'ready' && "Please show your Token Number at the counter to collect your food."}
+                                        <p className="text-sm mt-1 opacity-80">
+                                            Track individual items below. Show your Token Number at the counter.
                                         </p>
                                     </div>
                                 </div>
 
-                                {/* Items Summary */}
-                                <div className="mt-6 pt-4 border-t border-gray-100">
-                                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-3">Order Details</p>
-                                    <div className="space-y-2">
+                                {/* Items Summary with Individual Trackers */}
+                                <div className="pt-2">
+                                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-4">Items in this order</p>
+
+                                    <div className="space-y-4">
                                         {order.items.map((item, idx) => (
-                                            <div key={idx} className="flex justify-between text-sm">
-                                                <div className="font-medium text-gray-700">
-                                                    <span className="text-orange-600 mr-2">{item.qty}x</span>
-                                                    {item.name}
+                                            <div key={item._id || idx} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm ring-1 ring-gray-50">
+
+                                                {/* Item Header */}
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <div className="font-bold text-gray-800 text-sm flex items-center">
+                                                        <span className="text-orange-700 bg-orange-100 px-2 py-0.5 rounded mr-3">
+                                                            {item.qty}x
+                                                        </span>
+                                                        {item.name}
+                                                    </div>
+                                                    <div className="font-bold text-gray-700 text-sm">
+                                                        ₹{item.price * item.qty}
+                                                    </div>
                                                 </div>
+
+                                                {/* Individual Item Tracker */}
+                                                <ItemTracker
+                                                    status={item.status || 'pending'}
+                                                    orderStatus={order.orderStatus}
+                                                />
+
                                             </div>
                                         ))}
                                     </div>

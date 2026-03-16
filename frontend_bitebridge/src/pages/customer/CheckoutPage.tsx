@@ -60,7 +60,7 @@ const CheckoutPage = () => {
       const response = await axiosClient.post('/shop/place-order', orderPayload)
       
       if(!authUser){
-        const newOrderId = response.data.order._id;
+        const newOrderId = response.data.orderId;
         const existingGuestOrders = JSON.parse(localStorage.getItem('guestOrders') || '[]')
         existingGuestOrders.push(newOrderId);
         localStorage.setItem('guestOrders',JSON.stringify(existingGuestOrders))
@@ -68,11 +68,11 @@ const CheckoutPage = () => {
 
       toast.success("Order Placed Successfully!");
       clearCart();
-      navigate('/my-orders');
+      navigate('/my-current-orders');
 
     } catch (error: any) {
       console.log("kuch to gadbad hua hai laadle...")
-      toast.error(error.response.data.message)
+      toast.error(error.response?.data?.message || "dikkat to hui hai")
     }
 
   };

@@ -52,12 +52,6 @@ const HomePage = () => {
               <QrCode size={24}  />
               Scan QR to Order
             </button>
-            <button 
-              onClick={() => navigate('/restaurants')} // Optional: Agar aas paas ke restaurant dekhne ho
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white font-bold py-4 px-8 rounded-full text-lg transition-all active:scale-95 flex items-center justify-center gap-2"
-            >
-              Explore Restaurants
-            </button>
           </div>
         </div>
       </div>

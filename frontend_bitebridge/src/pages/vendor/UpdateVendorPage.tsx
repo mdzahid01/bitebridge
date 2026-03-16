@@ -8,8 +8,13 @@ const UpdateVendorPage = () => {
     const [shopName, setShopName] = useState("");
     const [address, setAddress] = useState("");
     
+    //api se fetch image
     const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
+    
+    //user se uploaded image
     const [newImageFile, setNewImageFile] = useState<File | null>(null);
+
+    //temporary image for preview
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     
     const [isLoading, setIsLoading] = useState(true);
@@ -158,7 +163,7 @@ const UpdateVendorPage = () => {
                                 )}
                             </>
                         ) : (
-                            // Agar koi image nahi hai
+                            // Agar koi image nahi hai (backend se bhi image nahi mili us case me)
                             <div 
                                 onClick={() => fileInputRef.current?.click()}
                                 className="w-full h-full flex flex-col items-center justify-center cursor-pointer text-gray-400 hover:text-orange-500 hover:bg-orange-50/50 transition-colors"

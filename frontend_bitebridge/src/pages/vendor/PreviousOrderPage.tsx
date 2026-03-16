@@ -12,6 +12,7 @@ interface IOrderItem {
     name: string;
     price: number;
     qty: number;
+    status: string;
 }
 interface ICustomerDetail {
     name: string;
@@ -239,13 +240,15 @@ const PreviousOrdersPage = () => {
                                         <div className="space-y-1.5 max-h-32 overflow-y-auto pr-2">
                                             {order.items.map((item, idx) => (
                                                 <div key={idx} className="flex justify-between items-start text-sm">
-                                                    <div className="flex gap-2 font-medium text-gray-800">
+                                                    <div className={`flex gap-2 font-medium text-gray-800 ${item.status === 'cancelled' ? 'opacity-60' : ''}`}>
                                                         <span className="text-gray-400">{item.qty}x</span>
-                                                        <span className={order.orderStatus === 'cancelled' ? 'line-through text-gray-400' : ''}>
+                                                        <span className={item.status === 'cancelled' ? 'line-through text-gray-400' : ''}>
                                                             {item.name}
                                                         </span>
                                                     </div>
-                                                    <span className="text-gray-500">₹{item.price * item.qty}</span>
+                                                    <span className={`text-gray-500 ${item.status === 'cancelled' ? 'line-through opacity-60' : ''}`}>
+                                                        ₹{item.price * item.qty}
+                                                    </span>
                                                 </div>
                                             ))}
                                         </div>

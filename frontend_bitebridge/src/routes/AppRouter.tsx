@@ -21,6 +21,8 @@ import DashboardLayout from "../components/layout/DashboardLayout"
 import DashboardHomePage from "../pages/vendor/DashboardHomePage";
 import PageUnderConstruction from "../pages/PageUnderConstruction";
 import UpdateVendorPage from "../pages/vendor/UpdateVendorPage";
+import CustomerPreviousOrdersPage from "../pages/customer/CustomerPreviousOrdersPage"
+import ProfilePage from "../pages/customer/ProfilePage";
 
 const router = createBrowserRouter([
     {
@@ -50,42 +52,60 @@ const router = createBrowserRouter([
                 )
             },
             {
-                path: 'my-orders',
+                path: 'my-current-orders',
                 element: (
                     <GuestOrCustomerRoutes>
                         <MyOrdersPage />
                     </GuestOrCustomerRoutes>
                 )
-            },  
+            },
+            {
+                path: 'my-previous-orders',
+                element: (
+                    <ProtectedRoute allowedRoles={["customer"]}>
+                        <CustomerPreviousOrdersPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: 'profile',
+                element: (
+                    <ProtectedRoute allowedRoles={["customer", "vendorOwner", "vendorStaff"]}>
+                        <ProfilePage />
+                    </ProtectedRoute>
+                )
+            },
         ]
     },
 
-    {   
-        path: "/dashboard", // 👉 Parent path set kar diya
-        element: <DashboardLayout/>,
+    {
+        path: "/dashboard",
+        element: <ProtectedRoute allowedRoles={["vendorOwner", "vendorStaff"]}>
+            <DashboardLayout />
+        </ProtectedRoute>,
         children: [
             {
-                index: true, // 👉 Ye default bacha hai. Ye direct "/dashboard" pe khulega
-                element: <DashboardHomePage /> 
+                index: true, //  Ye default bachha hai. Ye direct "/dashboard" pe khulega
+                element: <DashboardHomePage />
             },
             {
-                path: 'create-vendor', // 👉 Dhyan de: Aage ka '/' hata diya hai
+                path: 'create-vendor', 
                 element: (
                     <ProtectedRoute allowedRoles={["vendorOwner"]}>
-                        <CreateVendor /> 
+                        <CreateVendor />
                     </ProtectedRoute>
                 )
             },
             {
-                path: 'vendor-details', // 👉 Dhyan de: Aage ka '/' hata diya hai
+                path: 'vendor-details', 
                 element: (
                     <ProtectedRoute allowedRoles={["vendorOwner"]}>
-                        <UpdateVendorPage /> 
+                        <UpdateVendorPage />
                     </ProtectedRoute>
                 )
             },
             {
-                path: 'create-category', // 👉 Yahan bhi '/' nahi hai
+                path: 'create-category',
                 element: (
                     <ProtectedRoute allowedRoles={["vendorOwner"]}>
                         <CreateCategory />

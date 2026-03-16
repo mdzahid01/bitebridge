@@ -19,6 +19,14 @@ const authApi = {
     logout: async ()=>{
         const response = await axiosClient.post('/auth/logout')
         return response;
+    },
+    updateProfile: async (data: FormData) => {
+        const response = await axiosClient.put('/auth/profile', data, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            }
+        });
+        return response;
     }
 }
 
