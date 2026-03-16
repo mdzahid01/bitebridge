@@ -13,14 +13,19 @@ import {
   ChevronDown,
   LayoutDashboard,
   Package,
+  History,
+Activity,
+House,
 } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import authApi from "../../services/authApi";
+import QRScannerModal from "../common/QRScannerModal";
 
 const Navbar = () => {
   const { authUser, setAuthUser } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const navigate = useNavigate();
   const { getCartItemsCount } = useCart();
 
@@ -84,13 +89,13 @@ const Navbar = () => {
                 >
                   Home
                 </NavLink>
-                <NavLink
-                  to="/scan"
+                <button
+                  onClick={() => setIsScannerOpen(true)}
                   className="flex items-center gap-1 text-gray-600 hover:text-orange-600 font-medium transition-colors whitespace-nowrap"
                 >
                   <QrCode size={18} />
                   <span>Scan & Order</span>
-                </NavLink>
+                </button>
                 <NavLink
                   to="/my-current-orders"
                   className="flex items-center gap-1 text-gray-600 hover:text-orange-600 font-medium transition-colors whitespace-nowrap"
@@ -126,13 +131,13 @@ const Navbar = () => {
                 <NavLink to="/" className={getLinkClass}>
                   Home
                 </NavLink>
-                <NavLink
-                  to="/scan"
+                <button
+                  onClick={() => setIsScannerOpen(true)}
                   className="flex items-center gap-2 bg-gray-100 text-gray-800 px-4 py-2 rounded-full hover:bg-gray-200 transition whitespace-nowrap"
                 >
                   <QrCode size={18} />
                   <span className="text-sm font-semibold">Scan QR</span>
-                </NavLink>
+                </button>
                 <NavLink
                   to="/my-current-orders"
                   className="flex items-center gap-1 text-gray-600 hover:text-orange-600 font-medium transition-colors whitespace-nowrap"
@@ -247,12 +252,11 @@ const Navbar = () => {
             {/* GUEST MOBILE */}
             {!authUser && (
               <>
-                <MobileNavLink to="/" onClick={toggleMenu}>
+                <MobileNavLink to="/" onClick={toggleMenu} icon={<House size={18} />}>
                   Home
                 </MobileNavLink>
                 <MobileNavLink
-                  to="/scan"
-                  onClick={toggleMenu}
+                  onClick={() => { toggleMenu(); setIsScannerOpen(true); }}
                   icon={<QrCode size={18} />}
                 >
                   Scan QR
@@ -260,7 +264,7 @@ const Navbar = () => {
                 <MobileNavLink
                   to="/my-current-orders"
                   onClick={toggleMenu}
-                  icon={<Package size={18} />}
+                  icon={<Activity size={18} />}
                 >
                   Track Order
                 </MobileNavLink>
@@ -285,12 +289,11 @@ const Navbar = () => {
             {role === "customer" && (
               <>
                 <UserProfileMobile user={authUser} role="Customer" />
-                <MobileNavLink to="/" onClick={toggleMenu}>
+                <MobileNavLink to="/" onClick={toggleMenu} icon={<House size={18} />}>
                   Home
                 </MobileNavLink>
                 <MobileNavLink
-                  to="/scan"
-                  onClick={toggleMenu}
+                  onClick={() => { toggleMenu(); setIsScannerOpen(true); }}
                   icon={<QrCode size={18} />}
                 >
                   Scan QR
@@ -299,7 +302,7 @@ const Navbar = () => {
                 <MobileNavLink
                   to="/my-current-orders"
                   onClick={toggleMenu}
-                  icon={<Package size={18} />}
+                  icon={<Activity size={18} />}
                 >
                   Track Order
                 </MobileNavLink>
@@ -307,7 +310,7 @@ const Navbar = () => {
                 <MobileNavLink
                   to="/my-previous-orders"
                   onClick={toggleMenu}
-                  icon={<Package size={18} />}
+                  icon={<History size={18} />}
                 >
                 Previous Orders
                 </MobileNavLink>
@@ -352,6 +355,7 @@ const Navbar = () => {
           </div>
         </div>
       )}
+      <QRScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} />
     </nav>
   );
 };
@@ -363,16 +367,25 @@ const MobileNavLink = ({
   onClick,
   className = "",
   icon,
-}: any) => (
-  <NavLink
-    to={to}
-    onClick={onClick}
-    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-orange-50 transition duration-200 ${className}`}
-  >
-    {icon && <span>{icon}</span>}
-    {children}
-  </NavLink>
-);
+}: any) => {
+  const baseClass = `flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-orange-50 transition duration-200 w-full text-left ${className}`;
+
+  if (to) {
+    return (
+      <NavLink to={to} onClick={onClick} className={baseClass}>
+        {icon && <span>{icon}</span>}
+        {children}
+      </NavLink>
+    );
+  }
+
+  return (
+    <button onClick={onClick} className={baseClass}>
+      {icon && <span>{icon}</span>}
+      {children}
+    </button>
+  );
+};
 
 const UserProfileMobile = ({ user, role }: any) => (
   <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg mb-2 border border-gray-100">
